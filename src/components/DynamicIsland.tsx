@@ -196,7 +196,8 @@ export function DynamicIsland({
           </div>
           <ul className="flex flex-col gap-1">
             {todos.map((todo) => {
-              const isActive = todo.active && !todo.done;
+              const isActive = activeId === todo.id && !todo.done;
+              const isNext = nextId === todo.id && !todo.done && !isActive;
               const selectable = !todo.done && !isActive && canSwitch;
               return (
                 <li
@@ -211,9 +212,11 @@ export function DynamicIsland({
                     "flex items-center gap-2 rounded-xl px-2 py-2 transition-colors",
                     isActive
                       ? "bg-white/5"
-                      : selectable
-                        ? "hover:bg-white/5 cursor-pointer"
-                        : "",
+                      : isNext
+                        ? "bg-island-rest/10 ring-1 ring-island-rest/30"
+                        : selectable
+                          ? "hover:bg-white/5 cursor-pointer"
+                          : "",
                   ].join(" ")}
                 >
                   {/* Read-only status indicator */}
@@ -226,7 +229,9 @@ export function DynamicIsland({
                           "h-[18px] w-[18px]",
                           isActive
                             ? "text-island-accent"
-                            : "text-island-foreground/30",
+                            : isNext
+                              ? "text-island-rest"
+                              : "text-island-foreground/30",
                         ].join(" ")}
                       />
                     )}
@@ -243,6 +248,11 @@ export function DynamicIsland({
                   >
                     {todo.name}
                   </span>
+                  {isNext && (
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-island-rest">
+                      Next
+                    </span>
+                  )}
                   {isActive && (
                     <span className="text-[10px] font-semibold text-island-accent tabular-nums">
                       {display}
