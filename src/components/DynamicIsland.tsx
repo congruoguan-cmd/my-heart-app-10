@@ -24,7 +24,7 @@ export function DynamicIsland({
           "transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
           hovered
             ? "h-14 w-[360px] rounded-[28px] px-5 gap-4"
-            : "h-9 w-[180px] rounded-full px-4 gap-3",
+            : "h-9 w-[180px] rounded-[18px] px-4 gap-3",
         ].join(" ")}
       >
         {/* Live indicator dot */}
