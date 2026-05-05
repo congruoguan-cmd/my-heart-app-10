@@ -6,7 +6,8 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const TOTAL_SECONDS = 20 * 60;
+const WORK_SECONDS = 20 * 60;
+const REST_SECONDS = 1 * 60;
 
 function formatTime(s: number) {
   const mm = String(Math.floor(s / 60)).padStart(2, "0");
@@ -14,8 +15,13 @@ function formatTime(s: number) {
   return `${mm}:${ss}`;
 }
 
+type Mode = "work" | "rest" | "idle";
+
 function Index() {
-  const [elapsed, setElapsed] = useState(0); // seconds spent on active task
+  const [mode, setMode] = useState<Mode>("work");
+  const [elapsed, setElapsed] = useState(0); // for work
+  const [restElapsed, setRestElapsed] = useState(0); // for rest
+  const [nextId, setNextId] = useState<string | null>(null);
   const [todos, setTodos] = useState<Todo[]>([
     { id: "1", name: "回复设计稿评论", done: true, paused: false, active: false },
     { id: "2", name: "vibecoding", done: false, paused: false, active: true },
@@ -24,29 +30,75 @@ function Index() {
   ]);
 
   const active = todos.find((t) => t.active && !t.done);
-  const isRunning = !!active && !active.paused;
+  const next = nextId ? todos.find((t) => t.id === nextId && !t.done) : undefined;
+  const isWorkRunning = mode === "work" && !!active && !active.paused;
+  const isResting = mode === "rest";
 
+  // Work timer
   useEffect(() => {
-    if (!isRunning) return;
-    const id = setInterval(() => {
-      setElapsed((s) => (s >= TOTAL_SECONDS ? TOTAL_SECONDS : s + 1));
-    }, 1000);
+    if (!isWorkRunning) return;
+    const id = setInterval(() => setElapsed((s) => s + 1), 1000);
     return () => clearInterval(id);
-  }, [isRunning]);
+  }, [isWorkRunning]);
 
-  const remaining = Math.max(0, TOTAL_SECONDS - elapsed);
-  const progress = active ? (elapsed / TOTAL_SECONDS) * 100 : 0;
-  const label = !active
-    ? "—"
-    : active.paused
-      ? `已用 ${formatTime(elapsed)}`
-      : formatTime(remaining);
+  // Auto-finish when work timer ends
+  useEffect(() => {
+    if (mode === "work" && active && elapsed >= WORK_SECONDS) {
+      enterRest(active.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [elapsed, mode]);
+
+  // Rest timer
+  useEffect(() => {
+    if (!isResting) return;
+    const id = setInterval(() => setRestElapsed((s) => s + 1), 1000);
+    return () => clearInterval(id);
+  }, [isResting]);
+
+  // Auto-advance after rest
+  useEffect(() => {
+    if (mode === "rest" && restElapsed >= REST_SECONDS) {
+      finishRest();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restElapsed, mode]);
+
+  const enterRest = (justFinishedId: string) => {
+    setTodos((list) =>
+      list.map((t) =>
+        t.id === justFinishedId ? { ...t, done: true, active: false } : t,
+      ),
+    );
+    setElapsed(0);
+    setRestElapsed(0);
+    setMode("rest");
+  };
+
+  const finishRest = () => {
+    setRestElapsed(0);
+    if (next) {
+      setTodos((list) =>
+        list.map((t) =>
+          t.done ? t : { ...t, active: t.id === next.id, paused: false },
+        ),
+      );
+      setNextId(null);
+      setMode("work");
+      setElapsed(0);
+    } else {
+      setMode("idle");
+    }
+  };
 
   const handleToggleDone = (id: string) => {
+    if (mode === "work" && active?.id === id) {
+      enterRest(id);
+      return;
+    }
     setTodos((list) =>
       list.map((t) => (t.id === id ? { ...t, done: !t.done, active: false } : t)),
     );
-    if (active?.id === id) setElapsed(0);
   };
 
   const handleTogglePause = (id: string) => {
@@ -56,6 +108,21 @@ function Index() {
   };
 
   const handleSelectTask = (id: string) => {
+    if (mode === "rest") {
+      setNextId(id);
+      return;
+    }
+    if (mode === "idle") {
+      setTodos((list) =>
+        list.map((t) =>
+          t.done ? t : { ...t, active: t.id === id, paused: false },
+        ),
+      );
+      setElapsed(0);
+      setMode("work");
+      return;
+    }
+    // work mode (only when paused)
     setTodos((list) =>
       list.map((t) =>
         t.done ? t : { ...t, active: t.id === id, paused: t.id === id ? false : t.paused },
@@ -70,18 +137,53 @@ function Index() {
     setTodos((list) => [...list, { id, name, done: false, paused: false, active: false }]);
   };
 
+  // Derive island display
+  let taskName: string;
+  let label: string;
+  let progress: number;
+  let variant: "work" | "rest" | "idle" = mode;
+
+  if (mode === "work") {
+    const remaining = Math.max(0, WORK_SECONDS - elapsed);
+    taskName = active?.name ?? "无进行中任务";
+    progress = active ? (elapsed / WORK_SECONDS) * 100 : 0;
+    label = !active
+      ? "—"
+      : active.paused
+        ? `已用 ${formatTime(elapsed)}`
+        : formatTime(remaining);
+    if (!active) variant = "idle";
+  } else if (mode === "rest") {
+    const remaining = Math.max(0, REST_SECONDS - restElapsed);
+    taskName = next ? `Next · ${next.name}` : "休息一下";
+    progress = (restElapsed / REST_SECONDS) * 100;
+    label = formatTime(remaining);
+  } else {
+    taskName = "今天你想做什么？";
+    progress = 0;
+    label = "选择任务";
+  }
+
+  const canSwitch =
+    mode === "idle" ||
+    mode === "rest" ||
+    (mode === "work" && (!active || active.paused));
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-200 dark:from-slate-900 dark:via-slate-950 dark:to-black">
       <DynamicIsland
-        taskName={active?.name ?? "无进行中任务"}
+        taskName={taskName}
         progress={progress}
         label={label}
         todos={todos}
+        activeId={active?.id ?? null}
+        nextId={nextId}
+        variant={variant}
         onToggleDone={handleToggleDone}
         onTogglePause={handleTogglePause}
         onSelectTask={handleSelectTask}
         onAddTask={handleAddTask}
-        canSwitch={!active || active.paused}
+        canSwitch={canSwitch}
       />
 
       <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
@@ -89,7 +191,7 @@ function Index() {
           桌面灵动岛
         </h1>
         <p className="mt-4 max-w-md text-base text-muted-foreground">
-          点击灵动岛展开 Todo · 暂停/完成后可切换其他任务
+          专注 20 分钟 · 休息 1 分钟 · 完成后自动进入休息
         </p>
       </main>
     </div>
