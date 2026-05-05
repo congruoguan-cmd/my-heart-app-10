@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, Pause, Play, Circle, CheckCircle2, Plus } from "lucide-react";
+import { Check, Pause, Play, Circle, CheckCircle2, Plus, Coffee, Sparkles } from "lucide-react";
 
 export interface Todo {
   id: string;
@@ -14,6 +14,9 @@ interface DynamicIslandProps {
   progress?: number;
   label?: string;
   todos: Todo[];
+  activeId?: string | null;
+  nextId?: string | null;
+  variant?: "work" | "rest" | "idle";
   onToggleDone: (id: string) => void;
   onTogglePause: (id: string) => void;
   onSelectTask: (id: string) => void;
@@ -26,6 +29,9 @@ export function DynamicIsland({
   progress = 0,
   label,
   todos,
+  activeId,
+  nextId,
+  variant = "work",
   onToggleDone,
   onTogglePause,
   onSelectTask,
