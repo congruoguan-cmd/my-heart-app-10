@@ -63,6 +63,8 @@
   --color-island-foreground: var(--island-foreground);
   --color-island-accent: var(--island-accent);
   --color-island-accent-glow: var(--island-accent-glow);
+  --color-island-rest: var(--island-rest);
+  --color-island-rest-glow: var(--island-rest-glow);
   --shadow-island: var(--shadow-island);
 }
 
