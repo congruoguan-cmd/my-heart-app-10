@@ -3,14 +3,17 @@ import { useState } from "react";
 interface DynamicIslandProps {
   taskName?: string;
   progress?: number; // 0-100
+  label?: string; // optional custom label (e.g. time) shown instead of percent
 }
 
 export function DynamicIsland({
   taskName = "正在下载文件",
   progress = 42,
+  label,
 }: DynamicIslandProps) {
   const [hovered, setHovered] = useState(false);
   const clamped = Math.max(0, Math.min(100, progress));
+  const display = label ?? `${Math.round(clamped)}%`;
 
   return (
     <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50">
@@ -55,7 +58,7 @@ export function DynamicIsland({
             hovered ? "opacity-0" : "opacity-100",
           ].join(" ")}
         >
-          {clamped}%
+          {display}
         </span>
 
         {/* Expanded view: task name + progress + percent */}
@@ -78,7 +81,7 @@ export function DynamicIsland({
                 {taskName}
               </span>
               <span className="shrink-0 text-[11px] font-semibold tabular-nums text-island-accent">
-                {clamped}%
+                {display}
               </span>
             </div>
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
