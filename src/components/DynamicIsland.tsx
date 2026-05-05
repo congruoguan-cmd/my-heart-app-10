@@ -107,7 +107,12 @@ export function DynamicIsland({
         >
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-island-accent to-island-accent-glow transition-all duration-700 ease-out"
+              className={[
+                "h-full rounded-full transition-all duration-700 ease-out",
+                variant === "rest"
+                  ? "bg-gradient-to-r from-island-rest to-island-rest-glow"
+                  : "bg-gradient-to-r from-island-accent to-island-accent-glow",
+              ].join(" ")}
               style={{ width: `${clamped}%` }}
             />
           </div>
@@ -131,22 +136,38 @@ export function DynamicIsland({
               : "opacity-0 translate-y-2 pointer-events-none",
           ].join(" ")}
         >
-          <div className="relative flex h-2.5 w-2.5 shrink-0 items-center justify-center">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-island-accent opacity-60" />
-            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-island-accent" />
-          </div>
+          {variant === "rest" ? (
+            <Coffee className="h-4 w-4 shrink-0 text-island-rest" />
+          ) : variant === "idle" ? (
+            <Sparkles className="h-4 w-4 shrink-0 text-island-foreground/70" />
+          ) : (
+            <div className="relative flex h-2.5 w-2.5 shrink-0 items-center justify-center">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-island-accent opacity-60" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-island-accent" />
+            </div>
+          )}
           <div className="flex flex-1 flex-col gap-1.5 min-w-0">
             <div className="flex items-center justify-between gap-3">
               <span className="truncate text-[13px] font-medium text-island-foreground">
                 {taskName}
               </span>
-              <span className="shrink-0 text-[11px] font-semibold tabular-nums text-island-accent">
+              <span
+                className={[
+                  "shrink-0 text-[11px] font-semibold tabular-nums",
+                  variant === "rest" ? "text-island-rest" : "text-island-accent",
+                ].join(" ")}
+              >
                 {display}
               </span>
             </div>
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-island-accent to-island-accent-glow transition-all duration-700 ease-out"
+                className={[
+                  "h-full rounded-full transition-all duration-700 ease-out",
+                  variant === "rest"
+                    ? "bg-gradient-to-r from-island-rest to-island-rest-glow"
+                    : "bg-gradient-to-r from-island-accent to-island-accent-glow",
+                ].join(" ")}
                 style={{ width: `${clamped}%` }}
               />
             </div>
