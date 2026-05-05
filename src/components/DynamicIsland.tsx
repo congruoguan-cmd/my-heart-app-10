@@ -246,54 +246,6 @@ export function DynamicIsland({
                 </li>
               );
             })}
-                  <span
-                    className={[
-                      "flex-1 text-[13px] truncate",
-                      todo.done
-                        ? "line-through text-island-foreground/40"
-                        : isActive
-                          ? "text-island-foreground"
-                          : "text-island-foreground/80",
-                    ].join(" ")}
-                  >
-                    {todo.name}
-                  </span>
-                  {isActive && (
-                    <span className="text-[10px] font-semibold text-island-accent tabular-nums">
-                      {display}
-                    </span>
-                  )}
-                  {isActive && (
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onTogglePause(todo.id);
-                        }}
-                        className="h-7 w-7 inline-flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 text-island-foreground/80 transition-colors"
-                        aria-label={todo.paused ? "resume" : "pause"}
-                      >
-                        {todo.paused ? (
-                          <Play className="h-3.5 w-3.5" />
-                        ) : (
-                          <Pause className="h-3.5 w-3.5" />
-                        )}
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onToggleDone(todo.id);
-                        }}
-                        className="h-7 w-7 inline-flex items-center justify-center rounded-lg bg-island-accent/20 hover:bg-island-accent/30 text-island-accent transition-colors"
-                        aria-label="complete"
-                      >
-                        <Check className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  )}
-                </li>
-              );
-            })}
           </ul>
 
           {/* Add task */}
