@@ -18,6 +18,7 @@ interface DynamicIslandProps {
   onTogglePause: (id: string) => void;
   onSelectTask: (id: string) => void;
   onAddTask: (name: string) => void;
+  canSwitch: boolean;
 }
 
 export function DynamicIsland({
@@ -29,6 +30,7 @@ export function DynamicIsland({
   onTogglePause,
   onSelectTask,
   onAddTask,
+  canSwitch,
 }: DynamicIslandProps) {
   const [hovered, setHovered] = useState(false);
   const [open, setOpen] = useState(false);
@@ -162,7 +164,7 @@ export function DynamicIsland({
           <ul className="flex flex-col gap-1">
             {todos.map((todo) => {
               const isActive = todo.active && !todo.done;
-              const selectable = !todo.done && !isActive;
+              const selectable = !todo.done && !isActive && canSwitch;
               return (
                 <li
                   key={todo.id}
@@ -181,20 +183,21 @@ export function DynamicIsland({
                         : "",
                   ].join(" ")}
                 >
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onToggleDone(todo.id);
-                    }}
-                    className="shrink-0 text-island-foreground/60 hover:text-island-accent transition-colors"
-                    aria-label="toggle done"
-                  >
+                  {/* Read-only status indicator */}
+                  <span className="shrink-0 flex items-center justify-center">
                     {todo.done ? (
-                      <CheckCircle2 className="h-[18px] w-[18px] text-island-accent" />
+                      <CheckCircle2 className="h-[18px] w-[18px] text-island-accent/70" />
                     ) : (
-                      <Circle className="h-[18px] w-[18px]" />
+                      <Circle
+                        className={[
+                          "h-[18px] w-[18px]",
+                          isActive
+                            ? "text-island-accent"
+                            : "text-island-foreground/30",
+                        ].join(" ")}
+                      />
                     )}
-                  </button>
+                  </span>
                   <span
                     className={[
                       "flex-1 text-[13px] truncate",
