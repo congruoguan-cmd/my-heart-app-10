@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, Pause, Play, Circle, CheckCircle2, Plus } from "lucide-react";
+import { Check, Pause, Play, Circle, CheckCircle2, Plus, Coffee, Sparkles } from "lucide-react";
 
 export interface Todo {
   id: string;
@@ -14,6 +14,9 @@ interface DynamicIslandProps {
   progress?: number;
   label?: string;
   todos: Todo[];
+  activeId?: string | null;
+  nextId?: string | null;
+  variant?: "work" | "rest" | "idle";
   onToggleDone: (id: string) => void;
   onTogglePause: (id: string) => void;
   onSelectTask: (id: string) => void;
@@ -26,6 +29,9 @@ export function DynamicIsland({
   progress = 0,
   label,
   todos,
+  activeId,
+  nextId,
+  variant = "work",
   onToggleDone,
   onTogglePause,
   onSelectTask,
@@ -82,10 +88,16 @@ export function DynamicIsland({
             : "h-9 w-[180px] rounded-[18px] px-4 gap-3",
         ].join(" ")}
       >
-        <div className="relative flex h-2.5 w-2.5 shrink-0 items-center justify-center">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-island-accent opacity-60" />
-          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-island-accent" />
-        </div>
+        {variant === "rest" ? (
+          <Coffee className="h-3.5 w-3.5 shrink-0 text-island-rest" />
+        ) : variant === "idle" ? (
+          <Sparkles className="h-3.5 w-3.5 shrink-0 text-island-foreground/60" />
+        ) : (
+          <div className="relative flex h-2.5 w-2.5 shrink-0 items-center justify-center">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-island-accent opacity-60" />
+            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-island-accent" />
+          </div>
+        )}
 
         <div
           className={[
@@ -95,7 +107,12 @@ export function DynamicIsland({
         >
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-island-accent to-island-accent-glow transition-all duration-700 ease-out"
+              className={[
+                "h-full rounded-full transition-all duration-700 ease-out",
+                variant === "rest"
+                  ? "bg-gradient-to-r from-island-rest to-island-rest-glow"
+                  : "bg-gradient-to-r from-island-accent to-island-accent-glow",
+              ].join(" ")}
               style={{ width: `${clamped}%` }}
             />
           </div>
@@ -119,22 +136,38 @@ export function DynamicIsland({
               : "opacity-0 translate-y-2 pointer-events-none",
           ].join(" ")}
         >
-          <div className="relative flex h-2.5 w-2.5 shrink-0 items-center justify-center">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-island-accent opacity-60" />
-            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-island-accent" />
-          </div>
+          {variant === "rest" ? (
+            <Coffee className="h-4 w-4 shrink-0 text-island-rest" />
+          ) : variant === "idle" ? (
+            <Sparkles className="h-4 w-4 shrink-0 text-island-foreground/70" />
+          ) : (
+            <div className="relative flex h-2.5 w-2.5 shrink-0 items-center justify-center">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-island-accent opacity-60" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-island-accent" />
+            </div>
+          )}
           <div className="flex flex-1 flex-col gap-1.5 min-w-0">
             <div className="flex items-center justify-between gap-3">
               <span className="truncate text-[13px] font-medium text-island-foreground">
                 {taskName}
               </span>
-              <span className="shrink-0 text-[11px] font-semibold tabular-nums text-island-accent">
+              <span
+                className={[
+                  "shrink-0 text-[11px] font-semibold tabular-nums",
+                  variant === "rest" ? "text-island-rest" : "text-island-accent",
+                ].join(" ")}
+              >
                 {display}
               </span>
             </div>
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-island-accent to-island-accent-glow transition-all duration-700 ease-out"
+                className={[
+                  "h-full rounded-full transition-all duration-700 ease-out",
+                  variant === "rest"
+                    ? "bg-gradient-to-r from-island-rest to-island-rest-glow"
+                    : "bg-gradient-to-r from-island-accent to-island-accent-glow",
+                ].join(" ")}
                 style={{ width: `${clamped}%` }}
               />
             </div>
@@ -163,7 +196,8 @@ export function DynamicIsland({
           </div>
           <ul className="flex flex-col gap-1">
             {todos.map((todo) => {
-              const isActive = todo.active && !todo.done;
+              const isActive = activeId === todo.id && !todo.done;
+              const isNext = nextId === todo.id && !todo.done && !isActive;
               const selectable = !todo.done && !isActive && canSwitch;
               return (
                 <li
@@ -178,9 +212,11 @@ export function DynamicIsland({
                     "flex items-center gap-2 rounded-xl px-2 py-2 transition-colors",
                     isActive
                       ? "bg-white/5"
-                      : selectable
-                        ? "hover:bg-white/5 cursor-pointer"
-                        : "",
+                      : isNext
+                        ? "bg-island-rest/10 ring-1 ring-island-rest/30"
+                        : selectable
+                          ? "hover:bg-white/5 cursor-pointer"
+                          : "",
                   ].join(" ")}
                 >
                   {/* Read-only status indicator */}
@@ -193,7 +229,9 @@ export function DynamicIsland({
                           "h-[18px] w-[18px]",
                           isActive
                             ? "text-island-accent"
-                            : "text-island-foreground/30",
+                            : isNext
+                              ? "text-island-rest"
+                              : "text-island-foreground/30",
                         ].join(" ")}
                       />
                     )}
@@ -210,6 +248,11 @@ export function DynamicIsland({
                   >
                     {todo.name}
                   </span>
+                  {isNext && (
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-island-rest">
+                      Next
+                    </span>
+                  )}
                   {isActive && (
                     <span className="text-[10px] font-semibold text-island-accent tabular-nums">
                       {display}
