@@ -539,45 +539,12 @@ function ReminderTimePicker({ initialTimestamp, onConfirm, onCancel }: ReminderT
   const [hour, setHour] = useState(init.getHours());
   const [minute, setMinute] = useState(init.getMinutes());
 
-  const clampHour = (n: number) => ((n % 24) + 24) % 24;
-  const clampMin = (n: number) => ((n % 60) + 60) % 60;
-
   const confirm = () => {
     const d = new Date();
     d.setHours(hour, minute, 0, 0);
     if (d.getTime() <= Date.now()) d.setDate(d.getDate() + 1);
     onConfirm(d.getTime());
   };
-
-  const Wheel = ({
-    value,
-    onChange,
-    max,
-  }: {
-    value: number;
-    onChange: (n: number) => void;
-    max: number;
-  }) => (
-    <div className="flex flex-col items-center">
-      <button
-        onClick={() => onChange(max === 24 ? clampHour(value + 1) : clampMin(value + 1))}
-        className="h-5 w-9 inline-flex items-center justify-center rounded-md text-island-foreground/40 hover:text-island-foreground/90 hover:bg-white/5 transition-colors"
-        aria-label="increment"
-      >
-        <span className="text-[10px]">▲</span>
-      </button>
-      <div className="h-9 w-12 inline-flex items-center justify-center rounded-lg bg-white/10 text-[18px] font-semibold tabular-nums text-island-foreground">
-        {String(value).padStart(2, "0")}
-      </div>
-      <button
-        onClick={() => onChange(max === 24 ? clampHour(value - 1) : clampMin(value - 1))}
-        className="h-5 w-9 inline-flex items-center justify-center rounded-md text-island-foreground/40 hover:text-island-foreground/90 hover:bg-white/5 transition-colors"
-        aria-label="decrement"
-      >
-        <span className="text-[10px]">▼</span>
-      </button>
-    </div>
-  );
 
   return (
     <div
@@ -593,10 +560,12 @@ function ReminderTimePicker({ initialTimestamp, onConfirm, onCancel }: ReminderT
           <X className="h-3 w-3" />
         </button>
       </div>
-      <div className="flex items-center justify-center gap-2">
-        <Wheel value={hour} onChange={setHour} max={24} />
-        <span className="text-[18px] font-semibold text-island-foreground/40 pb-2">:</span>
-        <Wheel value={minute} onChange={setMinute} max={60} />
+      <div className="relative flex items-center justify-center gap-2">
+        {/* center highlight */}
+        <div className="pointer-events-none absolute left-0 right-0 top-1/2 -translate-y-1/2 h-9 rounded-lg bg-white/10" />
+        <ScrollWheel value={hour} onChange={setHour} max={24} />
+        <span className="relative z-10 text-[18px] font-semibold text-island-foreground/60 px-0.5">:</span>
+        <ScrollWheel value={minute} onChange={setMinute} max={60} />
       </div>
       <button
         onClick={confirm}
@@ -607,4 +576,86 @@ function ReminderTimePicker({ initialTimestamp, onConfirm, onCancel }: ReminderT
     </div>
   );
 }
+
+const ITEM_H = 32;
+
+function ScrollWheel({
+  value,
+  onChange,
+  max,
+}: {
+  value: number;
+  onChange: (n: number) => void;
+  max: number;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const settleTimer = useRef<number | null>(null);
+  const userScrolling = useRef(false);
+
+  // Sync scroll position when value changes externally (initial mount or programmatic)
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (userScrolling.current) return;
+    el.scrollTo({ top: value * ITEM_H, behavior: "auto" });
+  }, [value]);
+
+  const handleScroll = () => {
+    const el = ref.current;
+    if (!el) return;
+    userScrolling.current = true;
+    if (settleTimer.current) window.clearTimeout(settleTimer.current);
+    settleTimer.current = window.setTimeout(() => {
+      const idx = Math.round(el.scrollTop / ITEM_H);
+      const clamped = ((idx % max) + max) % max;
+      // Snap precisely
+      el.scrollTo({ top: clamped * ITEM_H, behavior: "smooth" });
+      if (clamped !== value) onChange(clamped);
+      userScrolling.current = false;
+    }, 120);
+  };
+
+  const items = Array.from({ length: max }, (_, i) => i);
+
+  return (
+    <div
+      ref={ref}
+      onScroll={handleScroll}
+      className="relative z-10 h-24 w-12 overflow-y-scroll snap-y snap-mandatory no-scrollbar"
+      style={{
+        scrollbarWidth: "none",
+        WebkitMaskImage:
+          "linear-gradient(to bottom, transparent 0, black 30%, black 70%, transparent 100%)",
+        maskImage:
+          "linear-gradient(to bottom, transparent 0, black 30%, black 70%, transparent 100%)",
+      }}
+    >
+      {/* spacer top */}
+      <div style={{ height: ITEM_H }} />
+      {items.map((n) => (
+        <div
+          key={n}
+          onClick={() => {
+            const el = ref.current;
+            if (!el) return;
+            el.scrollTo({ top: n * ITEM_H, behavior: "smooth" });
+            onChange(n);
+          }}
+          style={{ height: ITEM_H }}
+          className={[
+            "snap-center flex items-center justify-center text-[16px] font-semibold tabular-nums cursor-pointer transition-all",
+            n === value
+              ? "text-island-foreground scale-100"
+              : "text-island-foreground/30 scale-90",
+          ].join(" ")}
+        >
+          {String(n).padStart(2, "0")}
+        </div>
+      ))}
+      {/* spacer bottom */}
+      <div style={{ height: ITEM_H }} />
+    </div>
+  );
+}
+
 
