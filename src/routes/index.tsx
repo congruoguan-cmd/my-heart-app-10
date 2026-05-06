@@ -190,6 +190,8 @@ function Index() {
         onSelectTask={handleSelectTask}
         onAddTask={handleAddTask}
         canSwitch={canSwitch}
+        restMinutes={restMinutes}
+        onChangeRestMinutes={setRestMinutes}
       />
 
       <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
