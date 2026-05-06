@@ -125,7 +125,17 @@ export function DynamicIsland({
     return d.getTime();
   };
 
-  const showReminderInIsland = !!reminder && !expanded;
+  // Reminder takes over the island whenever it's firing — even if hovered/open
+  const showReminderInIsland = !!reminder;
+
+  // When a reminder fires while popover is open, close it so the alert is visible
+  useEffect(() => {
+    if (reminder) {
+      setOpen(false);
+      setHovered(false);
+      setReminderForId(null);
+    }
+  }, [reminder]);
 
   return (
     <div ref={containerRef} className="fixed top-4 left-1/2 -translate-x-1/2 z-50">
