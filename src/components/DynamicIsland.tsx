@@ -46,10 +46,16 @@ export function DynamicIsland({
   const [open, setOpen] = useState(false);
   const [adding, setAdding] = useState(false);
   const [newName, setNewName] = useState("");
+  const [tab, setTab] = useState<"todo" | "done">("todo");
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const clamped = Math.max(0, Math.min(100, progress));
   const display = label ?? `${Math.round(clamped)}%`;
+
+  // Today list: not-done OR done-today. History: done before today.
+  const todayList = todos.filter((t) => !t.done || t.createdToday);
+  const historyList = todos.filter((t) => t.done && !t.createdToday);
+  const visibleList = tab === "todo" ? todayList : historyList;
 
   useEffect(() => {
     if (!open) return;
