@@ -517,3 +517,84 @@ export function DynamicIsland({
     </div>
   );
 }
+
+interface ReminderTimePickerProps {
+  initialTimestamp: number | null;
+  onConfirm: (ts: number) => void;
+  onCancel: () => void;
+}
+
+function ReminderTimePicker({ initialTimestamp, onConfirm, onCancel }: ReminderTimePickerProps) {
+  const init = initialTimestamp ? new Date(initialTimestamp) : new Date(Date.now() + 15 * 60_000);
+  const [hour, setHour] = useState(init.getHours());
+  const [minute, setMinute] = useState(init.getMinutes());
+
+  const clampHour = (n: number) => ((n % 24) + 24) % 24;
+  const clampMin = (n: number) => ((n % 60) + 60) % 60;
+
+  const confirm = () => {
+    const d = new Date();
+    d.setHours(hour, minute, 0, 0);
+    if (d.getTime() <= Date.now()) d.setDate(d.getDate() + 1);
+    onConfirm(d.getTime());
+  };
+
+  const Wheel = ({
+    value,
+    onChange,
+    max,
+  }: {
+    value: number;
+    onChange: (n: number) => void;
+    max: number;
+  }) => (
+    <div className="flex flex-col items-center">
+      <button
+        onClick={() => onChange(max === 24 ? clampHour(value + 1) : clampMin(value + 1))}
+        className="h-5 w-9 inline-flex items-center justify-center rounded-md text-island-foreground/40 hover:text-island-foreground/90 hover:bg-white/5 transition-colors"
+        aria-label="increment"
+      >
+        <span className="text-[10px]">▲</span>
+      </button>
+      <div className="h-9 w-12 inline-flex items-center justify-center rounded-lg bg-white/10 text-[18px] font-semibold tabular-nums text-island-foreground">
+        {String(value).padStart(2, "0")}
+      </div>
+      <button
+        onClick={() => onChange(max === 24 ? clampHour(value - 1) : clampMin(value - 1))}
+        className="h-5 w-9 inline-flex items-center justify-center rounded-md text-island-foreground/40 hover:text-island-foreground/90 hover:bg-white/5 transition-colors"
+        aria-label="decrement"
+      >
+        <span className="text-[10px]">▼</span>
+      </button>
+    </div>
+  );
+
+  return (
+    <div
+      onClick={(e) => e.stopPropagation()}
+      className="ml-7 mr-2 mb-1 rounded-xl bg-white/5 p-3 animate-[fade-in_0.2s_ease-out]"
+    >
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[10px] uppercase tracking-wider text-island-foreground/50">提醒于</span>
+        <button
+          onClick={onCancel}
+          className="h-5 w-5 inline-flex items-center justify-center rounded-md text-island-foreground/40 hover:text-island-foreground/80"
+        >
+          <X className="h-3 w-3" />
+        </button>
+      </div>
+      <div className="flex items-center justify-center gap-2">
+        <Wheel value={hour} onChange={setHour} max={24} />
+        <span className="text-[18px] font-semibold text-island-foreground/40 pb-2">:</span>
+        <Wheel value={minute} onChange={setMinute} max={60} />
+      </div>
+      <button
+        onClick={confirm}
+        className="mt-3 w-full py-1.5 rounded-lg bg-island-accent/20 hover:bg-island-accent/30 text-island-accent text-[12px] font-semibold transition-colors"
+      >
+        确定
+      </button>
+    </div>
+  );
+}
+
