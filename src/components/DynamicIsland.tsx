@@ -125,12 +125,20 @@ export function DynamicIsland({
     return d.getTime();
   };
 
+  const showReminderInIsland = !!reminder && !expanded;
+
   return (
     <div ref={containerRef} className="fixed top-4 left-1/2 -translate-x-1/2 z-50">
       <div
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => {
+          if (showReminderInIsland) {
+            onDismissReminder();
+            return;
+          }
+          setOpen((v) => !v);
+        }}
         className={[
           "group relative flex items-center overflow-hidden cursor-pointer select-none",
           "bg-island text-island-foreground",
@@ -138,119 +146,112 @@ export function DynamicIsland({
           "transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
           expanded
             ? "h-14 w-[360px] rounded-[28px] px-5 gap-4"
-            : "h-9 w-[180px] rounded-[18px] px-4 gap-3",
+            : showReminderInIsland
+              ? "h-9 w-[240px] rounded-[18px] px-4 gap-2 ring-island-accent/40"
+              : "h-9 w-[180px] rounded-[18px] px-4 gap-3",
         ].join(" ")}
       >
-        {variant === "rest" ? (
-          <Coffee className="h-3.5 w-3.5 shrink-0 text-island-rest" />
-        ) : variant === "idle" ? (
-          <Sparkles className="h-3.5 w-3.5 shrink-0 text-island-foreground/60" />
+        {showReminderInIsland ? (
+          <>
+            <BellRing className="h-3.5 w-3.5 shrink-0 text-island-accent animate-pulse" />
+            <span className="flex-1 truncate text-[12px] font-medium text-island-foreground animate-[fade-in_0.3s_ease-out]">
+              {reminder!.name}
+            </span>
+            <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-island-accent/80">
+              提醒
+            </span>
+          </>
         ) : (
-          <div className="relative flex h-2.5 w-2.5 shrink-0 items-center justify-center">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-island-accent opacity-60" />
-            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-island-accent" />
-          </div>
-        )}
+          <>
+            {variant === "rest" ? (
+              <Coffee className="h-3.5 w-3.5 shrink-0 text-island-rest" />
+            ) : variant === "idle" ? (
+              <Sparkles className="h-3.5 w-3.5 shrink-0 text-island-foreground/60" />
+            ) : (
+              <div className="relative flex h-2.5 w-2.5 shrink-0 items-center justify-center">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-island-accent opacity-60" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-island-accent" />
+              </div>
+            )}
 
-        <div
-          className={[
-            "flex-1 transition-all duration-300",
-            expanded ? "opacity-0 -translate-y-2" : "opacity-100 translate-y-0",
-          ].join(" ")}
-        >
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
             <div
               className={[
-                "h-full rounded-full transition-all duration-700 ease-out",
-                variant === "rest"
-                  ? "bg-gradient-to-r from-island-rest to-island-rest-glow"
-                  : "bg-gradient-to-r from-island-accent to-island-accent-glow",
+                "flex-1 transition-all duration-300",
+                expanded ? "opacity-0 -translate-y-2" : "opacity-100 translate-y-0",
               ].join(" ")}
-              style={{ width: `${clamped}%` }}
-            />
-          </div>
-        </div>
+            >
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                <div
+                  className={[
+                    "h-full rounded-full transition-all duration-700 ease-out",
+                    variant === "rest"
+                      ? "bg-gradient-to-r from-island-rest to-island-rest-glow"
+                      : "bg-gradient-to-r from-island-accent to-island-accent-glow",
+                  ].join(" ")}
+                  style={{ width: `${clamped}%` }}
+                />
+              </div>
+            </div>
 
-        <span
-          className={[
-            "shrink-0 text-[11px] font-medium tabular-nums text-island-foreground/70 transition-all duration-300",
-            expanded ? "opacity-0" : "opacity-100",
-          ].join(" ")}
-        >
-          {display}
-        </span>
+            <span
+              className={[
+                "shrink-0 text-[11px] font-medium tabular-nums text-island-foreground/70 transition-all duration-300",
+                expanded ? "opacity-0" : "opacity-100",
+              ].join(" ")}
+            >
+              {display}
+            </span>
 
-        <div
-          className={[
-            "absolute inset-0 flex items-center gap-4 px-5",
-            "transition-all duration-300",
-            expanded
-              ? "opacity-100 translate-y-0 delay-150"
-              : "opacity-0 translate-y-2 pointer-events-none",
-          ].join(" ")}
-        >
-          {variant === "rest" ? (
-            <Coffee className="h-4 w-4 shrink-0 text-island-rest" />
-          ) : variant === "idle" ? (
-            <Sparkles className="h-4 w-4 shrink-0 text-island-foreground/70" />
-          ) : (
-            <div className="relative flex h-2.5 w-2.5 shrink-0 items-center justify-center">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-island-accent opacity-60" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-island-accent" />
+            <div
+              className={[
+                "absolute inset-0 flex items-center gap-4 px-5",
+                "transition-all duration-300",
+                expanded
+                  ? "opacity-100 translate-y-0 delay-150"
+                  : "opacity-0 translate-y-2 pointer-events-none",
+              ].join(" ")}
+            >
+              {variant === "rest" ? (
+                <Coffee className="h-4 w-4 shrink-0 text-island-rest" />
+              ) : variant === "idle" ? (
+                <Sparkles className="h-4 w-4 shrink-0 text-island-foreground/70" />
+              ) : (
+                <div className="relative flex h-2.5 w-2.5 shrink-0 items-center justify-center">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-island-accent opacity-60" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-island-accent" />
+                </div>
+              )}
+              <div className="flex flex-1 flex-col gap-1.5 min-w-0">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="truncate text-[13px] font-medium text-island-foreground">
+                    {taskName}
+                  </span>
+                  <span
+                    className={[
+                      "shrink-0 text-[11px] font-semibold tabular-nums",
+                      variant === "rest" ? "text-island-rest" : "text-island-accent",
+                    ].join(" ")}
+                  >
+                    {display}
+                  </span>
+                </div>
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                  <div
+                    className={[
+                      "h-full rounded-full transition-all duration-700 ease-out",
+                      variant === "rest"
+                        ? "bg-gradient-to-r from-island-rest to-island-rest-glow"
+                        : "bg-gradient-to-r from-island-accent to-island-accent-glow",
+                    ].join(" ")}
+                    style={{ width: `${clamped}%` }}
+                  />
+                </div>
+              </div>
             </div>
-          )}
-          <div className="flex flex-1 flex-col gap-1.5 min-w-0">
-            <div className="flex items-center justify-between gap-3">
-              <span className="truncate text-[13px] font-medium text-island-foreground">
-                {taskName}
-              </span>
-              <span
-                className={[
-                  "shrink-0 text-[11px] font-semibold tabular-nums",
-                  variant === "rest" ? "text-island-rest" : "text-island-accent",
-                ].join(" ")}
-              >
-                {display}
-              </span>
-            </div>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
-              <div
-                className={[
-                  "h-full rounded-full transition-all duration-700 ease-out",
-                  variant === "rest"
-                    ? "bg-gradient-to-r from-island-rest to-island-rest-glow"
-                    : "bg-gradient-to-r from-island-accent to-island-accent-glow",
-                ].join(" ")}
-                style={{ width: `${clamped}%` }}
-              />
-            </div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
 
-      {/* Reminder banner — pops out below the collapsed island */}
-      {reminder && !expanded && (
-        <div
-          onClick={(e) => {
-            e.stopPropagation();
-            onDismissReminder();
-          }}
-          className="absolute left-1/2 -translate-x-1/2 mt-2 flex items-center gap-2 rounded-full bg-island text-island-foreground shadow-island ring-1 ring-island-accent/40 pl-3 pr-2 py-1.5 cursor-pointer animate-[fade-in_0.3s_ease-out] whitespace-nowrap"
-        >
-          <BellRing className="h-3.5 w-3.5 text-island-accent animate-pulse" />
-          <span className="text-[12px] font-medium">提醒 · {reminder.name}</span>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDismissReminder();
-            }}
-            className="h-5 w-5 inline-flex items-center justify-center rounded-full hover:bg-white/10 text-island-foreground/60"
-            aria-label="dismiss"
-          >
-            <X className="h-3 w-3" />
-          </button>
-        </div>
-      )}
 
       {/* Popover */}
       <div
