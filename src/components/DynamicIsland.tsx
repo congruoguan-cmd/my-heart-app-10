@@ -196,16 +196,50 @@ export function DynamicIsland({
         ].join(" ")}
       >
         <div className="rounded-2xl bg-island text-island-foreground shadow-island ring-1 ring-white/10 p-3">
-          <div className="px-2 pt-1 pb-2 flex items-center justify-between">
-            <span className="text-[11px] uppercase tracking-wider text-island-foreground/50 font-semibold">
-              Todo
-            </span>
-            <span className="text-[11px] text-island-foreground/50">
-              {todos.filter((t) => t.done).length}/{todos.length}
+          <div className="px-1 pt-0.5 pb-2 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1 rounded-lg bg-white/5 p-0.5">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setTab("todo");
+                }}
+                className={[
+                  "px-2.5 py-1 rounded-md text-[11px] font-semibold tracking-wide transition-colors",
+                  tab === "todo"
+                    ? "bg-white/10 text-island-foreground"
+                    : "text-island-foreground/50 hover:text-island-foreground/80",
+                ].join(" ")}
+              >
+                Todo
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setTab("done");
+                }}
+                className={[
+                  "px-2.5 py-1 rounded-md text-[11px] font-semibold tracking-wide transition-colors",
+                  tab === "done"
+                    ? "bg-white/10 text-island-foreground"
+                    : "text-island-foreground/50 hover:text-island-foreground/80",
+                ].join(" ")}
+              >
+                已完成
+              </button>
+            </div>
+            <span className="text-[11px] text-island-foreground/50 tabular-nums">
+              {tab === "todo"
+                ? `${todayList.filter((t) => t.done).length}/${todayList.length}`
+                : `${historyList.length}`}
             </span>
           </div>
+          {visibleList.length === 0 && (
+            <div className="px-2 py-6 text-center text-[12px] text-island-foreground/40">
+              {tab === "todo" ? "今天还没有任务" : "暂无历史完成记录"}
+            </div>
+          )}
           <ul className="flex flex-col gap-1">
-            {todos.map((todo) => {
+            {visibleList.map((todo) => {
               const isActive = activeId === todo.id && !todo.done;
               const isNext = nextId === todo.id && !todo.done && !isActive;
               const selectable = !todo.done && !isActive && canSwitch;
