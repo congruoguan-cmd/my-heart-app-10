@@ -139,7 +139,7 @@ function Index() {
   const idCounter = useRef(100);
   const handleAddTask = (name: string) => {
     const id = String(idCounter.current++);
-    setTodos((list) => [...list, { id, name, done: false, paused: false, active: false }]);
+    setTodos((list) => [...list, { id, name, done: false, paused: false, active: false, createdToday: true }]);
   };
 
   // Derive island display
