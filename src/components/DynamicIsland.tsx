@@ -27,7 +27,7 @@ interface DynamicIslandProps {
   onTogglePause: (id: string) => void;
   onSelectTask: (id: string) => void;
   onAddTask: (name: string) => void;
-  onSetReminder: (id: string, minutesFromNow: number | null) => void;
+  onSetReminder: (id: string, timestamp: number | null) => void;
   reminder: { id: string; name: string } | null;
   onDismissReminder: () => void;
   canSwitch: boolean;
@@ -35,7 +35,7 @@ interface DynamicIslandProps {
   onChangeRestMinutes: (m: number) => void;
 }
 
-const REMINDER_PRESETS = [5, 15, 30, 60];
+
 
 export function DynamicIsland({
   taskName = "无进行中任务",
@@ -103,10 +103,26 @@ export function DynamicIsland({
     setAdding(false);
   };
 
-  const formatRemind = (ts: number) => {
-    const diff = Math.max(0, Math.round((ts - now) / 60000));
-    if (diff < 60) return `${diff}m`;
-    return `${Math.floor(diff / 60)}h${diff % 60 ? `${diff % 60}m` : ""}`;
+  const formatClock = (ts: number) => {
+    const d = new Date(ts);
+    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  };
+
+  const toLocalInputValue = (ts: number) => {
+    const d = new Date(ts);
+    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  };
+
+  const parseTimeToTimestamp = (hhmm: string): number | null => {
+    const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm);
+    if (!m) return null;
+    const h = Number(m[1]);
+    const mi = Number(m[2]);
+    if (h > 23 || mi > 59) return null;
+    const d = new Date();
+    d.setHours(h, mi, 0, 0);
+    if (d.getTime() <= Date.now()) d.setDate(d.getDate() + 1); // next day if past
+    return d.getTime();
   };
 
   return (
@@ -375,7 +391,7 @@ export function DynamicIsland({
                         <Bell className="h-3.5 w-3.5" />
                         {hasReminder && (
                           <span className="text-[10px] font-semibold tabular-nums">
-                            {formatRemind(todo.reminderAt!)}
+                            {formatClock(todo.reminderAt!)}
                           </span>
                         )}
                       </button>
@@ -412,24 +428,26 @@ export function DynamicIsland({
                   {showReminderPicker && (
                     <div
                       onClick={(e) => e.stopPropagation()}
-                      className="ml-7 mr-2 mb-1 flex items-center gap-1 rounded-lg bg-white/5 p-1.5"
+                      className="ml-7 mr-2 mb-1 flex items-center gap-2 rounded-lg bg-white/5 p-2"
                     >
-                      <span className="text-[10px] text-island-foreground/50 px-1">提醒我</span>
-                      {REMINDER_PRESETS.map((m) => (
-                        <button
-                          key={m}
-                          onClick={() => {
-                            onSetReminder(todo.id, m);
+                      <span className="text-[10px] text-island-foreground/50">提醒于</span>
+                      <input
+                        type="time"
+                        defaultValue={
+                          todo.reminderAt ? toLocalInputValue(todo.reminderAt) : ""
+                        }
+                        onChange={(e) => {
+                          const ts = parseTimeToTimestamp(e.target.value);
+                          if (ts) {
+                            onSetReminder(todo.id, ts);
                             setReminderForId(null);
-                          }}
-                          className="px-2 py-0.5 text-[11px] rounded-md bg-white/5 hover:bg-island-accent/20 hover:text-island-accent text-island-foreground/80 transition-colors"
-                        >
-                          {m}m
-                        </button>
-                      ))}
+                          }
+                        }}
+                        className="flex-1 bg-white/5 rounded-md px-2 py-1 text-[12px] tabular-nums text-island-foreground outline-none focus:bg-white/10 [color-scheme:dark]"
+                      />
                       <button
                         onClick={() => setReminderForId(null)}
-                        className="ml-auto h-5 w-5 inline-flex items-center justify-center rounded-md text-island-foreground/40 hover:text-island-foreground/80"
+                        className="h-6 w-6 inline-flex items-center justify-center rounded-md text-island-foreground/40 hover:text-island-foreground/80"
                       >
                         <X className="h-3 w-3" />
                       </button>
