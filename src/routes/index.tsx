@@ -167,12 +167,7 @@ function Index() {
     return () => clearInterval(id);
   }, [todos]);
 
-  // Auto-dismiss reminder after 15s
-  useEffect(() => {
-    if (!firedReminder) return;
-    const id = setTimeout(() => setFiredReminder(null), 15000);
-    return () => clearTimeout(id);
-  }, [firedReminder]);
+  // Reminder stays visible until user dismisses it (click the island)
 
 
   // Derive island display
