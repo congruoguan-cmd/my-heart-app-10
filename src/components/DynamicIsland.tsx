@@ -7,6 +7,10 @@ export interface Todo {
   done: boolean;
   paused: boolean;
   active: boolean;
+  /** true if created today; historical (pre-today) tasks are false */
+  createdToday?: boolean;
+  /** for completed history grouping */
+  completedAt?: string;
 }
 
 interface DynamicIslandProps {
