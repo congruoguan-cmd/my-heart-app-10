@@ -35,7 +35,7 @@ interface DynamicIslandProps {
   onChangeRestMinutes: (m: number) => void;
 }
 
-const REMINDER_PRESETS = [5, 15, 30, 60];
+
 
 export function DynamicIsland({
   taskName = "无进行中任务",
