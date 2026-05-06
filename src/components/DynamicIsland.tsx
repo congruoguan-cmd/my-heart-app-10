@@ -428,24 +428,26 @@ export function DynamicIsland({
                   {showReminderPicker && (
                     <div
                       onClick={(e) => e.stopPropagation()}
-                      className="ml-7 mr-2 mb-1 flex items-center gap-1 rounded-lg bg-white/5 p-1.5"
+                      className="ml-7 mr-2 mb-1 flex items-center gap-2 rounded-lg bg-white/5 p-2"
                     >
-                      <span className="text-[10px] text-island-foreground/50 px-1">提醒我</span>
-                      {REMINDER_PRESETS.map((m) => (
-                        <button
-                          key={m}
-                          onClick={() => {
-                            onSetReminder(todo.id, m);
+                      <span className="text-[10px] text-island-foreground/50">提醒于</span>
+                      <input
+                        type="time"
+                        defaultValue={
+                          todo.reminderAt ? toLocalInputValue(todo.reminderAt) : ""
+                        }
+                        onChange={(e) => {
+                          const ts = parseTimeToTimestamp(e.target.value);
+                          if (ts) {
+                            onSetReminder(todo.id, ts);
                             setReminderForId(null);
-                          }}
-                          className="px-2 py-0.5 text-[11px] rounded-md bg-white/5 hover:bg-island-accent/20 hover:text-island-accent text-island-foreground/80 transition-colors"
-                        >
-                          {m}m
-                        </button>
-                      ))}
+                          }
+                        }}
+                        className="flex-1 bg-white/5 rounded-md px-2 py-1 text-[12px] tabular-nums text-island-foreground outline-none focus:bg-white/10 [color-scheme:dark]"
+                      />
                       <button
                         onClick={() => setReminderForId(null)}
-                        className="ml-auto h-5 w-5 inline-flex items-center justify-center rounded-md text-island-foreground/40 hover:text-island-foreground/80"
+                        className="h-6 w-6 inline-flex items-center justify-center rounded-md text-island-foreground/40 hover:text-island-foreground/80"
                       >
                         <X className="h-3 w-3" />
                       </button>
