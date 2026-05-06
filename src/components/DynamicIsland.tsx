@@ -163,7 +163,7 @@ export function DynamicIsland({
       >
         {showReminderInIsland ? (
           <>
-            <BellRing className="h-3.5 w-3.5 shrink-0 text-island-accent animate-pulse" />
+            <BellRing className="h-3.5 w-3.5 shrink-0 text-island-accent animate-bell-shake" />
             <span className="flex-1 truncate text-[12px] font-medium text-island-foreground animate-[fade-in_0.3s_ease-out]">
               {reminder!.name}
             </span>
