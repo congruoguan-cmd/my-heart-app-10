@@ -427,32 +427,14 @@ export function DynamicIsland({
                     )}
                   </div>
                   {showReminderPicker && (
-                    <div
-                      onClick={(e) => e.stopPropagation()}
-                      className="ml-7 mr-2 mb-1 flex items-center gap-2 rounded-lg bg-white/5 p-2"
-                    >
-                      <span className="text-[10px] text-island-foreground/50">提醒于</span>
-                      <input
-                        type="time"
-                        defaultValue={
-                          todo.reminderAt ? toLocalInputValue(todo.reminderAt) : ""
-                        }
-                        onChange={(e) => {
-                          const ts = parseTimeToTimestamp(e.target.value);
-                          if (ts) {
-                            onSetReminder(todo.id, ts);
-                            setReminderForId(null);
-                          }
-                        }}
-                        className="flex-1 bg-white/5 rounded-md px-2 py-1 text-[12px] tabular-nums text-island-foreground outline-none focus:bg-white/10 [color-scheme:dark]"
-                      />
-                      <button
-                        onClick={() => setReminderForId(null)}
-                        className="h-6 w-6 inline-flex items-center justify-center rounded-md text-island-foreground/40 hover:text-island-foreground/80"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
+                    <ReminderTimePicker
+                      initialTimestamp={todo.reminderAt ?? null}
+                      onConfirm={(ts) => {
+                        onSetReminder(todo.id, ts);
+                        setReminderForId(null);
+                      }}
+                      onCancel={() => setReminderForId(null)}
+                    />
                   )}
                 </li>
               );
