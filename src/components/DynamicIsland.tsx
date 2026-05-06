@@ -391,7 +391,7 @@ export function DynamicIsland({
                         <Bell className="h-3.5 w-3.5" />
                         {hasReminder && (
                           <span className="text-[10px] font-semibold tabular-nums">
-                            {formatRemind(todo.reminderAt!)}
+                            {formatClock(todo.reminderAt!)}
                           </span>
                         )}
                       </button>
