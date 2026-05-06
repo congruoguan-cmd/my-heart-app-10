@@ -22,6 +22,7 @@ function Index() {
   const [restElapsed, setRestElapsed] = useState(0); // for rest
   const [nextId, setNextId] = useState<string | null>(null);
   const [restMinutes, setRestMinutes] = useState(1);
+  const [firedReminder, setFiredReminder] = useState<{ id: string; name: string } | null>(null);
   const REST_SECONDS = restMinutes * 60;
   const [todos, setTodos] = useState<Todo[]>([
     // Historical (created before today)
