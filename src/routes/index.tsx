@@ -23,10 +23,15 @@ function Index() {
   const [restElapsed, setRestElapsed] = useState(0); // for rest
   const [nextId, setNextId] = useState<string | null>(null);
   const [todos, setTodos] = useState<Todo[]>([
-    { id: "1", name: "回复设计稿评论", done: true, paused: false, active: false },
-    { id: "2", name: "vibecoding", done: false, paused: false, active: true },
-    { id: "3", name: "周会准备", done: false, paused: false, active: false },
-    { id: "4", name: "整理本周笔记", done: false, paused: false, active: false },
+    // Historical (created before today)
+    { id: "h1", name: "登录页改版评审", done: true, paused: false, active: false, createdToday: false },
+    { id: "h2", name: "用户调研整理", done: true, paused: false, active: false, createdToday: false },
+    { id: "h3", name: "修复夜间模式 bug", done: true, paused: false, active: false, createdToday: false },
+    // Today
+    { id: "1", name: "回复设计稿评论", done: true, paused: false, active: false, createdToday: true },
+    { id: "2", name: "vibecoding", done: false, paused: false, active: true, createdToday: true },
+    { id: "3", name: "周会准备", done: false, paused: false, active: false, createdToday: true },
+    { id: "4", name: "整理本周笔记", done: false, paused: false, active: false, createdToday: true },
   ]);
 
   const active = todos.find((t) => t.active && !t.done);
@@ -134,7 +139,7 @@ function Index() {
   const idCounter = useRef(100);
   const handleAddTask = (name: string) => {
     const id = String(idCounter.current++);
-    setTodos((list) => [...list, { id, name, done: false, paused: false, active: false }]);
+    setTodos((list) => [...list, { id, name, done: false, paused: false, active: false, createdToday: true }]);
   };
 
   // Derive island display

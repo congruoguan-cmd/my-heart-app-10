@@ -7,6 +7,10 @@ export interface Todo {
   done: boolean;
   paused: boolean;
   active: boolean;
+  /** true if created today; historical (pre-today) tasks are false */
+  createdToday?: boolean;
+  /** for completed history grouping */
+  completedAt?: string;
 }
 
 interface DynamicIslandProps {
@@ -42,10 +46,16 @@ export function DynamicIsland({
   const [open, setOpen] = useState(false);
   const [adding, setAdding] = useState(false);
   const [newName, setNewName] = useState("");
+  const [tab, setTab] = useState<"todo" | "done">("todo");
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const clamped = Math.max(0, Math.min(100, progress));
   const display = label ?? `${Math.round(clamped)}%`;
+
+  // Today list: not-done OR done-today. History: done before today.
+  const todayList = todos.filter((t) => !t.done || t.createdToday);
+  const historyList = todos.filter((t) => t.done && !t.createdToday);
+  const visibleList = tab === "todo" ? todayList : historyList;
 
   useEffect(() => {
     if (!open) return;
@@ -186,16 +196,50 @@ export function DynamicIsland({
         ].join(" ")}
       >
         <div className="rounded-2xl bg-island text-island-foreground shadow-island ring-1 ring-white/10 p-3">
-          <div className="px-2 pt-1 pb-2 flex items-center justify-between">
-            <span className="text-[11px] uppercase tracking-wider text-island-foreground/50 font-semibold">
-              Todo
-            </span>
-            <span className="text-[11px] text-island-foreground/50">
-              {todos.filter((t) => t.done).length}/{todos.length}
+          <div className="px-1 pt-0.5 pb-2 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1 rounded-lg bg-white/5 p-0.5">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setTab("todo");
+                }}
+                className={[
+                  "px-2.5 py-1 rounded-md text-[11px] font-semibold tracking-wide transition-colors",
+                  tab === "todo"
+                    ? "bg-white/10 text-island-foreground"
+                    : "text-island-foreground/50 hover:text-island-foreground/80",
+                ].join(" ")}
+              >
+                Todo
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setTab("done");
+                }}
+                className={[
+                  "px-2.5 py-1 rounded-md text-[11px] font-semibold tracking-wide transition-colors",
+                  tab === "done"
+                    ? "bg-white/10 text-island-foreground"
+                    : "text-island-foreground/50 hover:text-island-foreground/80",
+                ].join(" ")}
+              >
+                已完成
+              </button>
+            </div>
+            <span className="text-[11px] text-island-foreground/50 tabular-nums">
+              {tab === "todo"
+                ? `${todayList.filter((t) => t.done).length}/${todayList.length}`
+                : `${historyList.length}`}
             </span>
           </div>
+          {visibleList.length === 0 && (
+            <div className="px-2 py-6 text-center text-[12px] text-island-foreground/40">
+              {tab === "todo" ? "今天还没有任务" : "暂无历史完成记录"}
+            </div>
+          )}
           <ul className="flex flex-col gap-1">
-            {todos.map((todo) => {
+            {visibleList.map((todo) => {
               const isActive = activeId === todo.id && !todo.done;
               const isNext = nextId === todo.id && !todo.done && !isActive;
               const selectable = !todo.done && !isActive && canSwitch;
@@ -292,42 +336,44 @@ export function DynamicIsland({
           </ul>
 
           {/* Add task */}
-          <div className="mt-1 pt-1">
-            {adding ? (
-              <div
-                onClick={(e) => e.stopPropagation()}
-                className="flex items-center gap-2 rounded-xl px-2 py-1.5 bg-white/5"
-              >
-                <Plus className="h-[18px] w-[18px] text-island-foreground/50 shrink-0" />
-                <input
-                  ref={inputRef}
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") submitAdd();
-                    if (e.key === "Escape") {
-                      setAdding(false);
-                      setNewName("");
-                    }
+          {tab === "todo" && (
+            <div className="mt-1 pt-1">
+              {adding ? (
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex items-center gap-2 rounded-xl px-2 py-1.5 bg-white/5"
+                >
+                  <Plus className="h-[18px] w-[18px] text-island-foreground/50 shrink-0" />
+                  <input
+                    ref={inputRef}
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") submitAdd();
+                      if (e.key === "Escape") {
+                        setAdding(false);
+                        setNewName("");
+                      }
+                    }}
+                    onBlur={submitAdd}
+                    placeholder="新任务..."
+                    className="flex-1 bg-transparent text-[13px] text-island-foreground placeholder:text-island-foreground/30 outline-none"
+                  />
+                </div>
+              ) : (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setAdding(true);
                   }}
-                  onBlur={submitAdd}
-                  placeholder="新任务..."
-                  className="flex-1 bg-transparent text-[13px] text-island-foreground placeholder:text-island-foreground/30 outline-none"
-                />
-              </div>
-            ) : (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setAdding(true);
-                }}
-                className="w-full flex items-center gap-2 rounded-xl px-2 py-2 text-island-foreground/50 hover:text-island-foreground/90 hover:bg-white/5 transition-colors"
-              >
-                <Plus className="h-[18px] w-[18px]" />
-                <span className="text-[13px]">添加任务</span>
-              </button>
-            )}
-          </div>
+                  className="w-full flex items-center gap-2 rounded-xl px-2 py-2 text-island-foreground/50 hover:text-island-foreground/90 hover:bg-white/5 transition-colors"
+                >
+                  <Plus className="h-[18px] w-[18px]" />
+                  <span className="text-[13px]">添加任务</span>
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
