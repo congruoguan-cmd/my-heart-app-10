@@ -27,7 +27,7 @@ interface DynamicIslandProps {
   onTogglePause: (id: string) => void;
   onSelectTask: (id: string) => void;
   onAddTask: (name: string) => void;
-  onSetReminder: (id: string, minutesFromNow: number | null) => void;
+  onSetReminder: (id: string, timestamp: number | null) => void;
   reminder: { id: string; name: string } | null;
   onDismissReminder: () => void;
   canSwitch: boolean;
