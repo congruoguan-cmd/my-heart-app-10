@@ -7,7 +7,6 @@ export const Route = createFileRoute("/")({
 });
 
 const WORK_SECONDS = 20 * 60;
-const REST_SECONDS = 1 * 60;
 
 function formatTime(s: number) {
   const mm = String(Math.floor(s / 60)).padStart(2, "0");
