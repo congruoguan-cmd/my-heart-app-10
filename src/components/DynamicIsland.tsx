@@ -103,10 +103,26 @@ export function DynamicIsland({
     setAdding(false);
   };
 
-  const formatRemind = (ts: number) => {
-    const diff = Math.max(0, Math.round((ts - now) / 60000));
-    if (diff < 60) return `${diff}m`;
-    return `${Math.floor(diff / 60)}h${diff % 60 ? `${diff % 60}m` : ""}`;
+  const formatClock = (ts: number) => {
+    const d = new Date(ts);
+    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  };
+
+  const toLocalInputValue = (ts: number) => {
+    const d = new Date(ts);
+    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  };
+
+  const parseTimeToTimestamp = (hhmm: string): number | null => {
+    const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm);
+    if (!m) return null;
+    const h = Number(m[1]);
+    const mi = Number(m[2]);
+    if (h > 23 || mi > 59) return null;
+    const d = new Date();
+    d.setHours(h, mi, 0, 0);
+    if (d.getTime() <= Date.now()) d.setDate(d.getDate() + 1); // next day if past
+    return d.getTime();
   };
 
   return (
