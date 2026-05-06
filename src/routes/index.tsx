@@ -228,6 +228,9 @@ function Index() {
         canSwitch={canSwitch}
         restMinutes={restMinutes}
         onChangeRestMinutes={setRestMinutes}
+        onSetReminder={handleSetReminder}
+        reminder={firedReminder}
+        onDismissReminder={() => setFiredReminder(null)}
       />
 
       <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
