@@ -154,10 +154,10 @@ export function DynamicIsland({
           "bg-island text-island-foreground",
           "shadow-island ring-1 ring-white/5",
           "transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
-          expanded
-            ? "h-14 w-[360px] rounded-[28px] px-5 gap-4"
-            : showReminderInIsland
-              ? "h-9 w-[240px] rounded-[18px] px-4 gap-2 ring-island-accent/40"
+          showReminderInIsland
+            ? "h-9 w-[240px] rounded-[18px] px-4 gap-2 ring-island-accent/40"
+            : expanded
+              ? "h-14 w-[360px] rounded-[28px] px-5 gap-4"
               : "h-9 w-[180px] rounded-[18px] px-4 gap-3",
         ].join(" ")}
       >
