@@ -43,6 +43,8 @@ export function DynamicIsland({
   onSelectTask,
   onAddTask,
   canSwitch,
+  restMinutes,
+  onChangeRestMinutes,
 }: DynamicIslandProps) {
   const [hovered, setHovered] = useState(false);
   const [open, setOpen] = useState(false);
