@@ -144,13 +144,9 @@ function Index() {
     setTodos((list) => [...list, { id, name, done: false, paused: false, active: false, createdToday: true }]);
   };
 
-  const handleSetReminder = (id: string, minutesFromNow: number | null) => {
+  const handleSetReminder = (id: string, timestamp: number | null) => {
     setTodos((list) =>
-      list.map((t) =>
-        t.id === id
-          ? { ...t, reminderAt: minutesFromNow == null ? null : Date.now() + minutesFromNow * 60_000 }
-          : t,
-      ),
+      list.map((t) => (t.id === id ? { ...t, reminderAt: timestamp } : t)),
     );
   };
 
