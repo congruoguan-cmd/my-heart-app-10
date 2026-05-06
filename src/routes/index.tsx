@@ -144,6 +144,41 @@ function Index() {
     setTodos((list) => [...list, { id, name, done: false, paused: false, active: false, createdToday: true }]);
   };
 
+  const handleSetReminder = (id: string, minutesFromNow: number | null) => {
+    setTodos((list) =>
+      list.map((t) =>
+        t.id === id
+          ? { ...t, reminderAt: minutesFromNow == null ? null : Date.now() + minutesFromNow * 60_000 }
+          : t,
+      ),
+    );
+  };
+
+  // Reminder watcher — fires when any task's reminderAt passes
+  useEffect(() => {
+    const tick = () => {
+      const now = Date.now();
+      const due = todos.find((t) => t.reminderAt && t.reminderAt <= now && !t.done);
+      if (due) {
+        setFiredReminder({ id: due.id, name: due.name });
+        setTodos((list) =>
+          list.map((t) => (t.id === due.id ? { ...t, reminderAt: null } : t)),
+        );
+      }
+    };
+    tick();
+    const id = setInterval(tick, 5000);
+    return () => clearInterval(id);
+  }, [todos]);
+
+  // Auto-dismiss reminder after 15s
+  useEffect(() => {
+    if (!firedReminder) return;
+    const id = setTimeout(() => setFiredReminder(null), 15000);
+    return () => clearTimeout(id);
+  }, [firedReminder]);
+
+
   // Derive island display
   let taskName: string;
   let label: string;
