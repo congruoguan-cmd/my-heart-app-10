@@ -26,6 +26,8 @@ interface DynamicIslandProps {
   onSelectTask: (id: string) => void;
   onAddTask: (name: string) => void;
   canSwitch: boolean;
+  restMinutes: number;
+  onChangeRestMinutes: (m: number) => void;
 }
 
 export function DynamicIsland({
