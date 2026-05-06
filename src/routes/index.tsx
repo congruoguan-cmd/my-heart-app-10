@@ -7,7 +7,6 @@ export const Route = createFileRoute("/")({
 });
 
 const WORK_SECONDS = 20 * 60;
-const REST_SECONDS = 1 * 60;
 
 function formatTime(s: number) {
   const mm = String(Math.floor(s / 60)).padStart(2, "0");
@@ -22,6 +21,8 @@ function Index() {
   const [elapsed, setElapsed] = useState(0); // for work
   const [restElapsed, setRestElapsed] = useState(0); // for rest
   const [nextId, setNextId] = useState<string | null>(null);
+  const [restMinutes, setRestMinutes] = useState(1);
+  const REST_SECONDS = restMinutes * 60;
   const [todos, setTodos] = useState<Todo[]>([
     // Historical (created before today)
     { id: "h1", name: "登录页改版评审", done: true, paused: false, active: false, createdToday: false },
@@ -189,6 +190,8 @@ function Index() {
         onSelectTask={handleSelectTask}
         onAddTask={handleAddTask}
         canSwitch={canSwitch}
+        restMinutes={restMinutes}
+        onChangeRestMinutes={setRestMinutes}
       />
 
       <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">

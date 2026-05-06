@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, Pause, Play, Circle, CheckCircle2, Plus, Coffee, Sparkles } from "lucide-react";
+import { Check, Pause, Play, Circle, CheckCircle2, Plus, Coffee, Sparkles, Minus } from "lucide-react";
 
 export interface Todo {
   id: string;
@@ -26,6 +26,8 @@ interface DynamicIslandProps {
   onSelectTask: (id: string) => void;
   onAddTask: (name: string) => void;
   canSwitch: boolean;
+  restMinutes: number;
+  onChangeRestMinutes: (m: number) => void;
 }
 
 export function DynamicIsland({
@@ -41,6 +43,8 @@ export function DynamicIsland({
   onSelectTask,
   onAddTask,
   canSwitch,
+  restMinutes,
+  onChangeRestMinutes,
 }: DynamicIslandProps) {
   const [hovered, setHovered] = useState(false);
   const [open, setOpen] = useState(false);
@@ -372,7 +376,39 @@ export function DynamicIsland({
                   <span className="text-[13px]">添加任务</span>
                 </button>
               )}
+
+          {/* Rest duration control */}
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="mt-2 pt-2 border-t border-white/5 flex items-center justify-between px-2"
+          >
+            <div className="flex items-center gap-1.5 text-[11px] text-island-foreground/50">
+              <Coffee className="h-3 w-3" />
+              <span>休息时长</span>
             </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => onChangeRestMinutes(Math.max(1, restMinutes - 1))}
+                disabled={restMinutes <= 1}
+                className="h-6 w-6 inline-flex items-center justify-center rounded-md bg-white/5 hover:bg-white/10 text-island-foreground/70 disabled:opacity-30 transition-colors"
+                aria-label="decrease"
+              >
+                <Minus className="h-3 w-3" />
+              </button>
+              <span className="min-w-[44px] text-center text-[12px] font-semibold tabular-nums text-island-foreground/90">
+                {restMinutes} min
+              </span>
+              <button
+                onClick={() => onChangeRestMinutes(Math.min(60, restMinutes + 1))}
+                disabled={restMinutes >= 60}
+                className="h-6 w-6 inline-flex items-center justify-center rounded-md bg-white/5 hover:bg-white/10 text-island-foreground/70 disabled:opacity-30 transition-colors"
+                aria-label="increase"
+              >
+                <Plus className="h-3 w-3" />
+              </button>
+            </div>
+          </div>
+        </div>
           )}
         </div>
       </div>
