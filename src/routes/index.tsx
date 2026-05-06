@@ -22,6 +22,7 @@ function Index() {
   const [restElapsed, setRestElapsed] = useState(0); // for rest
   const [nextId, setNextId] = useState<string | null>(null);
   const [restMinutes, setRestMinutes] = useState(1);
+  const [firedReminder, setFiredReminder] = useState<{ id: string; name: string } | null>(null);
   const REST_SECONDS = restMinutes * 60;
   const [todos, setTodos] = useState<Todo[]>([
     // Historical (created before today)
@@ -143,6 +144,41 @@ function Index() {
     setTodos((list) => [...list, { id, name, done: false, paused: false, active: false, createdToday: true }]);
   };
 
+  const handleSetReminder = (id: string, minutesFromNow: number | null) => {
+    setTodos((list) =>
+      list.map((t) =>
+        t.id === id
+          ? { ...t, reminderAt: minutesFromNow == null ? null : Date.now() + minutesFromNow * 60_000 }
+          : t,
+      ),
+    );
+  };
+
+  // Reminder watcher — fires when any task's reminderAt passes
+  useEffect(() => {
+    const tick = () => {
+      const now = Date.now();
+      const due = todos.find((t) => t.reminderAt && t.reminderAt <= now && !t.done);
+      if (due) {
+        setFiredReminder({ id: due.id, name: due.name });
+        setTodos((list) =>
+          list.map((t) => (t.id === due.id ? { ...t, reminderAt: null } : t)),
+        );
+      }
+    };
+    tick();
+    const id = setInterval(tick, 5000);
+    return () => clearInterval(id);
+  }, [todos]);
+
+  // Auto-dismiss reminder after 15s
+  useEffect(() => {
+    if (!firedReminder) return;
+    const id = setTimeout(() => setFiredReminder(null), 15000);
+    return () => clearTimeout(id);
+  }, [firedReminder]);
+
+
   // Derive island display
   let taskName: string;
   let label: string;
@@ -192,6 +228,9 @@ function Index() {
         canSwitch={canSwitch}
         restMinutes={restMinutes}
         onChangeRestMinutes={setRestMinutes}
+        onSetReminder={handleSetReminder}
+        reminder={firedReminder}
+        onDismissReminder={() => setFiredReminder(null)}
       />
 
       <main className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
