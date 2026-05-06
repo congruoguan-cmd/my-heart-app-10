@@ -336,42 +336,44 @@ export function DynamicIsland({
           </ul>
 
           {/* Add task */}
-          <div className="mt-1 pt-1">
-            {adding ? (
-              <div
-                onClick={(e) => e.stopPropagation()}
-                className="flex items-center gap-2 rounded-xl px-2 py-1.5 bg-white/5"
-              >
-                <Plus className="h-[18px] w-[18px] text-island-foreground/50 shrink-0" />
-                <input
-                  ref={inputRef}
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") submitAdd();
-                    if (e.key === "Escape") {
-                      setAdding(false);
-                      setNewName("");
-                    }
+          {tab === "todo" && (
+            <div className="mt-1 pt-1">
+              {adding ? (
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex items-center gap-2 rounded-xl px-2 py-1.5 bg-white/5"
+                >
+                  <Plus className="h-[18px] w-[18px] text-island-foreground/50 shrink-0" />
+                  <input
+                    ref={inputRef}
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") submitAdd();
+                      if (e.key === "Escape") {
+                        setAdding(false);
+                        setNewName("");
+                      }
+                    }}
+                    onBlur={submitAdd}
+                    placeholder="新任务..."
+                    className="flex-1 bg-transparent text-[13px] text-island-foreground placeholder:text-island-foreground/30 outline-none"
+                  />
+                </div>
+              ) : (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setAdding(true);
                   }}
-                  onBlur={submitAdd}
-                  placeholder="新任务..."
-                  className="flex-1 bg-transparent text-[13px] text-island-foreground placeholder:text-island-foreground/30 outline-none"
-                />
-              </div>
-            ) : (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setAdding(true);
-                }}
-                className="w-full flex items-center gap-2 rounded-xl px-2 py-2 text-island-foreground/50 hover:text-island-foreground/90 hover:bg-white/5 transition-colors"
-              >
-                <Plus className="h-[18px] w-[18px]" />
-                <span className="text-[13px]">添加任务</span>
-              </button>
-            )}
-          </div>
+                  className="w-full flex items-center gap-2 rounded-xl px-2 py-2 text-island-foreground/50 hover:text-island-foreground/90 hover:bg-white/5 transition-colors"
+                >
+                  <Plus className="h-[18px] w-[18px]" />
+                  <span className="text-[13px]">添加任务</span>
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
