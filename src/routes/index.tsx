@@ -21,6 +21,8 @@ function Index() {
   const [elapsed, setElapsed] = useState(0); // for work
   const [restElapsed, setRestElapsed] = useState(0); // for rest
   const [nextId, setNextId] = useState<string | null>(null);
+  const [restMinutes, setRestMinutes] = useState(1);
+  const REST_SECONDS = restMinutes * 60;
   const [todos, setTodos] = useState<Todo[]>([
     // Historical (created before today)
     { id: "h1", name: "登录页改版评审", done: true, paused: false, active: false, createdToday: false },
