@@ -87,6 +87,7 @@ export function DynamicIsland({
         setOpen(false);
         setAdding(false);
         setReminderForId(null);
+        setDeletingId(null);
       }
     };
     document.addEventListener("mousedown", onClick);
