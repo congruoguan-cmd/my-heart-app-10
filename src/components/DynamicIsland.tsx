@@ -50,6 +50,7 @@ export function DynamicIsland({
   onTogglePause,
   onSelectTask,
   onAddTask,
+  onDeleteTask,
   onSetReminder,
   reminder,
   onDismissReminder,
