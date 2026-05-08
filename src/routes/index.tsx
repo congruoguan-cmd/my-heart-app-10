@@ -144,6 +144,11 @@ function Index() {
     setTodos((list) => [...list, { id, name, done: false, paused: false, active: false, createdToday: true }]);
   };
 
+  const handleDeleteTask = (id: string) => {
+    setTodos((list) => list.filter((t) => t.id !== id));
+    setNextId((n) => (n === id ? null : n));
+  };
+
   const handleSetReminder = (id: string, timestamp: number | null) => {
     setTodos((list) =>
       list.map((t) => (t.id === id ? { ...t, reminderAt: timestamp } : t)),
@@ -216,6 +221,7 @@ function Index() {
         onTogglePause={handleTogglePause}
         onSelectTask={handleSelectTask}
         onAddTask={handleAddTask}
+        onDeleteTask={handleDeleteTask}
         canSwitch={canSwitch}
         restMinutes={restMinutes}
         onChangeRestMinutes={setRestMinutes}

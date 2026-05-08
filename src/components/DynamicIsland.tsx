@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, Pause, Play, Circle, CheckCircle2, Plus, Coffee, Sparkles, Minus, Bell, BellRing, X } from "lucide-react";
+import { Check, Pause, Play, Circle, CheckCircle2, Plus, Coffee, Sparkles, Minus, Bell, BellRing, X, Trash2 } from "lucide-react";
 
 export interface Todo {
   id: string;
@@ -27,6 +27,7 @@ interface DynamicIslandProps {
   onTogglePause: (id: string) => void;
   onSelectTask: (id: string) => void;
   onAddTask: (name: string) => void;
+  onDeleteTask: (id: string) => void;
   onSetReminder: (id: string, timestamp: number | null) => void;
   reminder: { id: string; name: string } | null;
   onDismissReminder: () => void;
@@ -49,6 +50,7 @@ export function DynamicIsland({
   onTogglePause,
   onSelectTask,
   onAddTask,
+  onDeleteTask,
   onSetReminder,
   reminder,
   onDismissReminder,
@@ -62,6 +64,7 @@ export function DynamicIsland({
   const [newName, setNewName] = useState("");
   const [tab, setTab] = useState<"todo" | "done">("todo");
   const [reminderForId, setReminderForId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -84,6 +87,7 @@ export function DynamicIsland({
         setOpen(false);
         setAdding(false);
         setReminderForId(null);
+        setDeletingId(null);
       }
     };
     document.addEventListener("mousedown", onClick);
@@ -327,20 +331,29 @@ export function DynamicIsland({
                 <li key={todo.id} className="flex flex-col">
                   <div
                     onClick={(e) => {
+                      if (deletingId === todo.id) return;
                       if (selectable) {
                         e.stopPropagation();
                         onSelectTask(todo.id);
                       }
                     }}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setDeletingId(todo.id);
+                      setReminderForId(null);
+                    }}
                     className={[
                       "flex items-center gap-2 rounded-xl px-2 py-2 transition-colors",
-                      isActive
-                        ? "bg-white/5"
-                        : isNext
-                          ? "bg-island-rest/10 ring-1 ring-island-rest/30"
-                          : selectable
-                            ? "hover:bg-white/5 cursor-pointer"
-                            : "",
+                      deletingId === todo.id
+                        ? "bg-destructive/15 ring-1 ring-destructive/40"
+                        : isActive
+                          ? "bg-white/5"
+                          : isNext
+                            ? "bg-island-rest/10 ring-1 ring-island-rest/30"
+                            : selectable
+                              ? "hover:bg-white/5 cursor-pointer"
+                              : "",
                     ].join(" ")}
                   >
                     <span className="shrink-0 flex items-center justify-center">
@@ -432,6 +445,26 @@ export function DynamicIsland({
                           aria-label="complete"
                         >
                           <Check className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    )}
+                    {deletingId === todo.id && (
+                      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => setDeletingId(null)}
+                          className="h-7 px-2 inline-flex items-center rounded-lg bg-white/5 hover:bg-white/10 text-island-foreground/70 text-[11px] font-medium transition-colors"
+                        >
+                          取消
+                        </button>
+                        <button
+                          onClick={() => {
+                            onDeleteTask(todo.id);
+                            setDeletingId(null);
+                          }}
+                          className="h-7 px-2 inline-flex items-center gap-1 rounded-lg bg-destructive/20 hover:bg-destructive/30 text-destructive text-[11px] font-semibold transition-colors"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          删除
                         </button>
                       </div>
                     )}
