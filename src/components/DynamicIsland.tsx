@@ -27,6 +27,7 @@ interface DynamicIslandProps {
   onTogglePause: (id: string) => void;
   onSelectTask: (id: string) => void;
   onAddTask: (name: string) => void;
+  onDeleteTask: (id: string) => void;
   onSetReminder: (id: string, timestamp: number | null) => void;
   reminder: { id: string; name: string } | null;
   onDismissReminder: () => void;
