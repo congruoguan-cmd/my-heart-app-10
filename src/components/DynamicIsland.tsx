@@ -330,20 +330,29 @@ export function DynamicIsland({
                 <li key={todo.id} className="flex flex-col">
                   <div
                     onClick={(e) => {
+                      if (deletingId === todo.id) return;
                       if (selectable) {
                         e.stopPropagation();
                         onSelectTask(todo.id);
                       }
                     }}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setDeletingId(todo.id);
+                      setReminderForId(null);
+                    }}
                     className={[
                       "flex items-center gap-2 rounded-xl px-2 py-2 transition-colors",
-                      isActive
-                        ? "bg-white/5"
-                        : isNext
-                          ? "bg-island-rest/10 ring-1 ring-island-rest/30"
-                          : selectable
-                            ? "hover:bg-white/5 cursor-pointer"
-                            : "",
+                      deletingId === todo.id
+                        ? "bg-destructive/15 ring-1 ring-destructive/40"
+                        : isActive
+                          ? "bg-white/5"
+                          : isNext
+                            ? "bg-island-rest/10 ring-1 ring-island-rest/30"
+                            : selectable
+                              ? "hover:bg-white/5 cursor-pointer"
+                              : "",
                     ].join(" ")}
                   >
                     <span className="shrink-0 flex items-center justify-center">
