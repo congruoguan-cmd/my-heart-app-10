@@ -64,6 +64,7 @@ export function DynamicIsland({
   const [newName, setNewName] = useState("");
   const [tab, setTab] = useState<"todo" | "done">("todo");
   const [reminderForId, setReminderForId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
