@@ -447,6 +447,26 @@ export function DynamicIsland({
                         </button>
                       </div>
                     )}
+                    {deletingId === todo.id && (
+                      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => setDeletingId(null)}
+                          className="h-7 px-2 inline-flex items-center rounded-lg bg-white/5 hover:bg-white/10 text-island-foreground/70 text-[11px] font-medium transition-colors"
+                        >
+                          取消
+                        </button>
+                        <button
+                          onClick={() => {
+                            onDeleteTask(todo.id);
+                            setDeletingId(null);
+                          }}
+                          className="h-7 px-2 inline-flex items-center gap-1 rounded-lg bg-destructive/20 hover:bg-destructive/30 text-destructive text-[11px] font-semibold transition-colors"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          删除
+                        </button>
+                      </div>
+                    )}
                   </div>
                   {showReminderPicker && (
                     <ReminderTimePicker
