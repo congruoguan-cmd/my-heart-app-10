@@ -295,6 +295,42 @@ function Index() {
         <p className="mt-4 max-w-md text-base text-muted-foreground">
           专注 20 分钟 · 休息 1 分钟 · 完成后自动进入休息
         </p>
+
+        <div className="mt-12 w-full max-w-3xl">
+          <p className="mb-3 text-xs uppercase tracking-wider text-muted-foreground/70">
+            演示窗口 · 按住拖到顶部任务里
+          </p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {[
+              { url: "https://figma.com/file/design-review", title: "Figma · 设计稿评审", host: "figma.com", color: "from-pink-500/20 to-purple-500/20" },
+              { url: "https://github.com/lovable/issue-42", title: "GitHub · Issue #42", host: "github.com", color: "from-slate-500/20 to-zinc-500/20" },
+              { url: "https://notion.so/weekly-notes", title: "Notion · 本周笔记", host: "notion.so", color: "from-amber-500/20 to-orange-500/20" },
+            ].map((w) => (
+              <div
+                key={w.url}
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.effectAllowed = "copy";
+                  e.dataTransfer.setData("text/uri-list", w.url);
+                  e.dataTransfer.setData("text/plain", w.url);
+                }}
+                className={`group cursor-grab active:cursor-grabbing rounded-xl border border-border bg-gradient-to-br ${w.color} backdrop-blur-sm p-3 text-left shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all`}
+              >
+                <div className="flex items-center gap-1.5 mb-2">
+                  <span className="h-2 w-2 rounded-full bg-red-400/70" />
+                  <span className="h-2 w-2 rounded-full bg-yellow-400/70" />
+                  <span className="h-2 w-2 rounded-full bg-green-400/70" />
+                  <span className="ml-2 truncate text-[10px] text-foreground/50">{w.host}</span>
+                </div>
+                <div className="rounded-md bg-background/60 p-2">
+                  <div className="text-[12px] font-medium text-foreground truncate">{w.title}</div>
+                  <div className="mt-1 h-1 w-3/4 rounded bg-foreground/10" />
+                  <div className="mt-1 h-1 w-1/2 rounded bg-foreground/10" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </main>
     </div>
   );
