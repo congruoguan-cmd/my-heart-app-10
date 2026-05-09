@@ -144,9 +144,63 @@ function Index() {
     setTodos((list) => [...list, { id, name, done: false, paused: false, active: false, createdToday: true }]);
   };
 
+  const handleAddSubtask = (parentId: string, name: string) => {
+    const id = String(idCounter.current++);
+    setTodos((list) => [
+      ...list,
+      { id, name, done: false, paused: false, active: false, createdToday: true, parentId },
+    ]);
+  };
+
   const handleDeleteTask = (id: string) => {
-    setTodos((list) => list.filter((t) => t.id !== id));
+    // also remove subtasks of the deleted task
+    setTodos((list) => list.filter((t) => t.id !== id && t.parentId !== id));
     setNextId((n) => (n === id ? null : n));
+  };
+
+  const normalizeUrl = (raw: string): string => {
+    const s = raw.trim();
+    if (/^https?:\/\//i.test(s)) return s;
+    if (/^[\w-]+(\.[\w-]+)+/.test(s)) return `https://${s}`;
+    return s;
+  };
+
+  const handleAddLink = (taskId: string, rawUrl: string) => {
+    const url = normalizeUrl(rawUrl);
+    let host = "";
+    let title = url;
+    try {
+      const u = new URL(url);
+      host = u.hostname;
+      title = host.replace(/^www\./, "") + (u.pathname !== "/" ? u.pathname : "");
+    } catch {
+      // leave as-is
+    }
+    const favicon = host
+      ? `https://www.google.com/s2/favicons?domain=${host}&sz=64`
+      : undefined;
+    const id = `lk_${idCounter.current++}`;
+    setTodos((list) =>
+      list.map((t) =>
+        t.id === taskId
+          ? { ...t, links: [...(t.links ?? []), { id, url, title, favicon }], linksCollapsed: false }
+          : t,
+      ),
+    );
+  };
+
+  const handleRemoveLink = (taskId: string, linkId: string) => {
+    setTodos((list) =>
+      list.map((t) =>
+        t.id === taskId ? { ...t, links: (t.links ?? []).filter((l) => l.id !== linkId) } : t,
+      ),
+    );
+  };
+
+  const handleToggleLinksCollapsed = (taskId: string) => {
+    setTodos((list) =>
+      list.map((t) => (t.id === taskId ? { ...t, linksCollapsed: !t.linksCollapsed } : t)),
+    );
   };
 
   const handleSetReminder = (id: string, timestamp: number | null) => {
