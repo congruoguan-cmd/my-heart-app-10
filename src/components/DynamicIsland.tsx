@@ -40,8 +40,12 @@ interface DynamicIslandProps {
   onTogglePause: (id: string) => void;
   onSelectTask: (id: string) => void;
   onAddTask: (name: string) => void;
+  onAddSubtask: (parentId: string, name: string) => void;
   onDeleteTask: (id: string) => void;
   onSetReminder: (id: string, timestamp: number | null) => void;
+  onAddLink: (taskId: string, url: string) => void;
+  onRemoveLink: (taskId: string, linkId: string) => void;
+  onToggleLinksCollapsed: (taskId: string) => void;
   reminder: { id: string; name: string } | null;
   onDismissReminder: () => void;
   canSwitch: boolean;
@@ -63,8 +67,12 @@ export function DynamicIsland({
   onTogglePause,
   onSelectTask,
   onAddTask,
+  onAddSubtask,
   onDeleteTask,
   onSetReminder,
+  onAddLink,
+  onRemoveLink,
+  onToggleLinksCollapsed,
   reminder,
   onDismissReminder,
   canSwitch,
