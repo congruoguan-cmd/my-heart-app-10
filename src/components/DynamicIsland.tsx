@@ -370,25 +370,50 @@ export function DynamicIsland({
             </div>
             <span className="text-[11px] text-island-foreground/50 tabular-nums">
               {tab === "todo"
-                ? `${todayList.filter((t) => t.done).length}/${todayList.length}`
-                : `${historyList.length}`}
+                ? `${todayParents.filter((t) => t.done).length}/${todayParents.length}`
+                : `${historyParents.length}`}
             </span>
           </div>
-          {visibleList.length === 0 && (
+          {visibleParents.length === 0 && (
             <div className="px-2 py-6 text-center text-[12px] text-island-foreground/40">
               {tab === "todo" ? "今天还没有任务" : "暂无历史完成记录"}
             </div>
           )}
           <ul className="flex flex-col gap-1">
-            {visibleList.map((todo) => {
+            {visibleParents.map((todo) => {
               const isActive = activeId === todo.id && !todo.done;
               const isNext = nextId === todo.id && !todo.done && !isActive;
               const selectable = !todo.done && !isActive && canSwitch;
               const hasReminder = !!todo.reminderAt && todo.reminderAt > now;
               const showReminderPicker = reminderForId === todo.id;
+              const subs = subtasksOf(todo.id);
+              const links = todo.links ?? [];
+              const linksOpen = !todo.linksCollapsed;
+              const isDragOver = dragOverId === todo.id;
               return (
-                <li key={todo.id} className="flex flex-col">
+                <li
+                  key={todo.id}
+                  className="flex flex-col"
+                  onDragOver={(e) => {
+                    if (e.dataTransfer.types.includes("text/uri-list") || e.dataTransfer.types.includes("text/plain")) {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = "copy";
+                      setDragOverId(todo.id);
+                    }
+                  }}
+                  onDragLeave={() => setDragOverId((id) => (id === todo.id ? null : id))}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const uri = e.dataTransfer.getData("text/uri-list");
+                    const txt = e.dataTransfer.getData("text/plain");
+                    const url = (uri.split("\n").find((s) => s && !s.startsWith("#")) || txt || "").trim();
+                    if (url) onAddLink(todo.id, url);
+                    setDragOverId(null);
+                  }}
+                >
                   <div
+                    onMouseEnter={() => setHoveredTaskId(todo.id)}
+                    onMouseLeave={() => setHoveredTaskId((id) => (id === todo.id ? null : id))}
                     onClick={(e) => {
                       if (deletingId === todo.id) return;
                       if (selectable) {
@@ -404,15 +429,17 @@ export function DynamicIsland({
                     }}
                     className={[
                       "flex items-center gap-2 rounded-xl px-2 py-2 transition-colors",
-                      deletingId === todo.id
-                        ? "bg-destructive/15 ring-1 ring-destructive/40"
-                        : isActive
-                          ? "bg-white/5"
-                          : isNext
-                            ? "bg-island-rest/10 ring-1 ring-island-rest/30"
-                            : selectable
-                              ? "hover:bg-white/5 cursor-pointer"
-                              : "",
+                      isDragOver
+                        ? "bg-island-accent/15 ring-1 ring-island-accent/50"
+                        : deletingId === todo.id
+                          ? "bg-destructive/15 ring-1 ring-destructive/40"
+                          : isActive
+                            ? "bg-white/5"
+                            : isNext
+                              ? "bg-island-rest/10 ring-1 ring-island-rest/30"
+                              : selectable
+                                ? "hover:bg-white/5 cursor-pointer"
+                                : "",
                     ].join(" ")}
                   >
                     <span className="shrink-0 flex items-center justify-center">
@@ -443,6 +470,22 @@ export function DynamicIsland({
                     >
                       {todo.name}
                     </span>
+                    {links.length > 0 && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onToggleLinksCollapsed(todo.id);
+                        }}
+                        className="h-6 px-1.5 inline-flex items-center gap-0.5 rounded-md text-island-foreground/50 hover:text-island-foreground/90 hover:bg-white/5 transition-colors"
+                        aria-label="toggle links"
+                      >
+                        <LinkIcon className="h-3 w-3" />
+                        <span className="text-[10px] font-semibold tabular-nums">{links.length}</span>
+                        <ChevronDown
+                          className={["h-3 w-3 transition-transform", linksOpen ? "" : "-rotate-90"].join(" ")}
+                        />
+                      </button>
+                    )}
                     {isNext && (
                       <span className="text-[10px] font-semibold uppercase tracking-wider text-island-rest">
                         Next
@@ -537,6 +580,132 @@ export function DynamicIsland({
                       }}
                       onCancel={() => setReminderForId(null)}
                     />
+                  )}
+
+                  {/* Link cards */}
+                  {links.length > 0 && linksOpen && (
+                    <div className="ml-7 mr-1 mb-1 flex flex-wrap gap-1.5">
+                      {links.map((lk) => (
+                        <a
+                          key={lk.id}
+                          href={lk.url}
+                          target="_blank"
+                          rel="noreferrer noopener"
+                          onClick={(e) => e.stopPropagation()}
+                          className="group/link relative inline-flex items-center gap-1.5 max-w-[200px] rounded-lg bg-white/5 hover:bg-white/10 px-2 py-1 text-[11px] text-island-foreground/80 ring-1 ring-white/5 transition-colors"
+                          title={lk.url}
+                        >
+                          {lk.favicon ? (
+                            <img src={lk.favicon} alt="" className="h-3.5 w-3.5 rounded-sm shrink-0" />
+                          ) : (
+                            <ExternalLink className="h-3 w-3 shrink-0 text-island-foreground/50" />
+                          )}
+                          <span className="truncate">{lk.title}</span>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              onRemoveLink(todo.id, lk.id);
+                            }}
+                            className="opacity-0 group-hover/link:opacity-100 h-4 w-4 inline-flex items-center justify-center rounded text-island-foreground/50 hover:text-island-foreground hover:bg-white/10 transition-opacity"
+                            aria-label="remove link"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </a>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Subtasks */}
+                  {subs.length > 0 && (
+                    <ul className="ml-7 flex flex-col gap-0.5 border-l border-white/5 pl-2">
+                      {subs.map((sub) => {
+                        const subDeleting = deletingId === sub.id;
+                        return (
+                          <li
+                            key={sub.id}
+                            onClick={(e) => {
+                              if (subDeleting) return;
+                              e.stopPropagation();
+                              onToggleDone(sub.id);
+                            }}
+                            onContextMenu={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setDeletingId(sub.id);
+                            }}
+                            className={[
+                              "flex items-center gap-2 rounded-lg px-1.5 py-1 transition-colors cursor-pointer",
+                              subDeleting
+                                ? "bg-destructive/15 ring-1 ring-destructive/40"
+                                : "hover:bg-white/5",
+                            ].join(" ")}
+                          >
+                            {sub.done ? (
+                              <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-island-accent/60" />
+                            ) : (
+                              <Circle className="h-3.5 w-3.5 shrink-0 text-island-foreground/25" />
+                            )}
+                            <span
+                              className={[
+                                "flex-1 text-[12px] truncate",
+                                sub.done
+                                  ? "line-through text-island-foreground/35"
+                                  : "text-island-foreground/70",
+                              ].join(" ")}
+                            >
+                              {sub.name}
+                            </span>
+                            {subDeleting && (
+                              <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                                <button
+                                  onClick={() => setDeletingId(null)}
+                                  className="h-5 px-1.5 inline-flex items-center rounded text-island-foreground/60 text-[10px] hover:bg-white/5"
+                                >
+                                  取消
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    onDeleteTask(sub.id);
+                                    setDeletingId(null);
+                                  }}
+                                  className="h-5 px-1.5 inline-flex items-center gap-0.5 rounded bg-destructive/20 text-destructive text-[10px] font-semibold"
+                                >
+                                  <Trash2 className="h-2.5 w-2.5" />
+                                  删除
+                                </button>
+                              </div>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+
+                  {/* Subtask input (Tab to open) */}
+                  {subtaskInputForId === todo.id && (
+                    <div
+                      onClick={(e) => e.stopPropagation()}
+                      className="ml-7 mt-0.5 flex items-center gap-2 rounded-lg px-1.5 py-1 bg-white/5 ring-1 ring-island-accent/30"
+                    >
+                      <Plus className="h-3.5 w-3.5 text-island-foreground/40 shrink-0" />
+                      <input
+                        ref={subtaskInputRef}
+                        value={newSubtaskName}
+                        onChange={(e) => setNewSubtaskName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") submitSubtask(todo.id);
+                          if (e.key === "Escape") {
+                            setSubtaskInputForId(null);
+                            setNewSubtaskName("");
+                          }
+                        }}
+                        onBlur={() => submitSubtask(todo.id)}
+                        placeholder="子任务..."
+                        className="flex-1 bg-transparent text-[12px] text-island-foreground placeholder:text-island-foreground/30 outline-none"
+                      />
+                    </div>
                   )}
                 </li>
               );
