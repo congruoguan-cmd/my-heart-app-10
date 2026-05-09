@@ -127,6 +127,29 @@ export function DynamicIsland({
     if (adding) inputRef.current?.focus();
   }, [adding]);
 
+  useEffect(() => {
+    if (subtaskInputForId) subtaskInputRef.current?.focus();
+  }, [subtaskInputForId]);
+
+  // Tab on hovered task row → open subtask input under it
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Tab" || !hoveredTaskId) return;
+      // don't hijack Tab while typing in inputs
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) return;
+      e.preventDefault();
+      // only allow subtasks under parent (top-level) tasks
+      const t = todos.find((x) => x.id === hoveredTaskId);
+      if (!t || t.parentId) return;
+      setSubtaskInputForId(hoveredTaskId);
+      setNewSubtaskName("");
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, hoveredTaskId, todos]);
+
   const expanded = hovered || open;
 
   const submitAdd = () => {
@@ -134,6 +157,13 @@ export function DynamicIsland({
     if (name) onAddTask(name);
     setNewName("");
     setAdding(false);
+  };
+
+  const submitSubtask = (parentId: string) => {
+    const name = newSubtaskName.trim();
+    if (name) onAddSubtask(parentId, name);
+    setNewSubtaskName("");
+    setSubtaskInputForId(null);
   };
 
   const formatClock = (ts: number) => {
