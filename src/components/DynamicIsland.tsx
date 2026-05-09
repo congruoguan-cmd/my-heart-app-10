@@ -1,5 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, Pause, Play, Circle, CheckCircle2, Plus, Coffee, Sparkles, Minus, Bell, BellRing, X, Trash2 } from "lucide-react";
+import { Check, Pause, Play, Circle, CheckCircle2, Plus, Coffee, Sparkles, Minus, Bell, BellRing, X, Trash2, ChevronDown, Link as LinkIcon, ExternalLink } from "lucide-react";
+
+export interface TaskLink {
+  id: string;
+  url: string;
+  title: string;
+  favicon?: string;
+}
 
 export interface Todo {
   id: string;
@@ -13,6 +20,12 @@ export interface Todo {
   completedAt?: string;
   /** epoch ms when reminder should fire */
   reminderAt?: number | null;
+  /** parent task id (subtask if set). subtasks don't run timers themselves. */
+  parentId?: string | null;
+  /** attached link cards */
+  links?: TaskLink[];
+  /** whether the link cards under this task are collapsed */
+  linksCollapsed?: boolean;
 }
 
 interface DynamicIslandProps {
