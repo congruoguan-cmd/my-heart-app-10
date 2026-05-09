@@ -109,6 +109,18 @@ export function DynamicIsland({
     return () => clearInterval(id);
   }, []);
 
+  // Auto-open popover while user is dragging a URL anywhere on the page
+  useEffect(() => {
+    const onDragEnter = (e: DragEvent) => {
+      const types = e.dataTransfer?.types;
+      if (types && (types.includes("text/uri-list") || types.includes("text/plain"))) {
+        setOpen(true);
+      }
+    };
+    window.addEventListener("dragenter", onDragEnter);
+    return () => window.removeEventListener("dragenter", onDragEnter);
+  }, []);
+
   useEffect(() => {
     if (!open) return;
     const onClick = (e: MouseEvent) => {
