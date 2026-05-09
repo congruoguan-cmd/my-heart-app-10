@@ -275,7 +275,11 @@ function Index() {
         onTogglePause={handleTogglePause}
         onSelectTask={handleSelectTask}
         onAddTask={handleAddTask}
+        onAddSubtask={handleAddSubtask}
         onDeleteTask={handleDeleteTask}
+        onAddLink={handleAddLink}
+        onRemoveLink={handleRemoveLink}
+        onToggleLinksCollapsed={handleToggleLinksCollapsed}
         canSwitch={canSwitch}
         restMinutes={restMinutes}
         onChangeRestMinutes={setRestMinutes}
