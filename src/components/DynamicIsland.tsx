@@ -86,15 +86,23 @@ export function DynamicIsland({
   const [tab, setTab] = useState<"todo" | "done">("todo");
   const [reminderForId, setReminderForId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [hoveredTaskId, setHoveredTaskId] = useState<string | null>(null);
+  const [subtaskInputForId, setSubtaskInputForId] = useState<string | null>(null);
+  const [newSubtaskName, setNewSubtaskName] = useState("");
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const subtaskInputRef = useRef<HTMLInputElement>(null);
   const clamped = Math.max(0, Math.min(100, progress));
   const display = label ?? `${Math.round(clamped)}%`;
 
-  const todayList = todos.filter((t) => !t.done || t.createdToday);
-  const historyList = todos.filter((t) => t.done && !t.createdToday);
-  const visibleList = tab === "todo" ? todayList : historyList;
+  const isParent = (t: Todo) => !t.parentId;
+  const subtasksOf = (parentId: string) => todos.filter((t) => t.parentId === parentId);
+  // Today list: parents only (subtasks render nested)
+  const todayParents = todos.filter((t) => isParent(t) && (!t.done || t.createdToday));
+  const historyParents = todos.filter((t) => isParent(t) && t.done && !t.createdToday);
+  const visibleParents = tab === "todo" ? todayParents : historyParents;
 
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 30000);
