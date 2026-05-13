@@ -412,17 +412,40 @@ export function DynamicIsland({
               return (
                 <li
                   key={todo.id}
-                  className="flex flex-col"
+                  className="relative flex flex-col"
                   onDragOver={(e) => {
-                    if (e.dataTransfer.types.includes("text/uri-list") || e.dataTransfer.types.includes("text/plain")) {
+                    const types = e.dataTransfer.types;
+                    if (types.includes(TASK_MIME)) {
+                      if (draggingTaskId && draggingTaskId !== todo.id) {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = "move";
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const pos: "before" | "after" =
+                          e.clientY < rect.top + rect.height / 2 ? "before" : "after";
+                        setReorderOver({ id: todo.id, pos });
+                      }
+                    } else if (types.includes("text/uri-list") || types.includes("text/plain")) {
                       e.preventDefault();
                       e.dataTransfer.dropEffect = "copy";
                       setDragOverId(todo.id);
                     }
                   }}
-                  onDragLeave={() => setDragOverId((id) => (id === todo.id ? null : id))}
+                  onDragLeave={() => {
+                    setDragOverId((id) => (id === todo.id ? null : id));
+                    setReorderOver((r) => (r?.id === todo.id ? null : r));
+                  }}
                   onDrop={(e) => {
                     e.preventDefault();
+                    const draggedId = e.dataTransfer.getData(TASK_MIME);
+                    if (draggedId && draggedId !== todo.id) {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const pos: "before" | "after" =
+                        e.clientY < rect.top + rect.height / 2 ? "before" : "after";
+                      onReorderTasks(draggedId, todo.id, pos);
+                      setReorderOver(null);
+                      setDraggingTaskId(null);
+                      return;
+                    }
                     const uri = e.dataTransfer.getData("text/uri-list");
                     const txt = e.dataTransfer.getData("text/plain");
                     const url = (uri.split("\n").find((s) => s && !s.startsWith("#")) || txt || "").trim();
@@ -430,6 +453,14 @@ export function DynamicIsland({
                     setDragOverId(null);
                   }}
                 >
+                  {isReorderOver && (
+                    <div
+                      className={[
+                        "pointer-events-none absolute left-1 right-1 h-0.5 rounded-full bg-island-accent z-10",
+                        reorderOver!.pos === "before" ? "-top-0.5" : "-bottom-0.5",
+                      ].join(" ")}
+                    />
+                  )}
                   <div
                     onMouseEnter={() => setHoveredTaskId(todo.id)}
                     onMouseLeave={() => setHoveredTaskId((id) => (id === todo.id ? null : id))}
