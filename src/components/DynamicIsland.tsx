@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, Pause, Play, Circle, CheckCircle2, Plus, Coffee, Sparkles, Minus, Bell, BellRing, X, Trash2, ChevronDown, Link as LinkIcon, ExternalLink } from "lucide-react";
+import { Check, Pause, Play, Circle, CheckCircle2, Plus, Coffee, Sparkles, Minus, Bell, BellRing, X, Trash2, ChevronDown, Link as LinkIcon, ExternalLink, GripVertical } from "lucide-react";
+
+const TASK_MIME = "application/x-task-id";
 
 export interface TaskLink {
   id: string;
@@ -46,6 +48,7 @@ interface DynamicIslandProps {
   onAddLink: (taskId: string, url: string) => void;
   onRemoveLink: (taskId: string, linkId: string) => void;
   onToggleLinksCollapsed: (taskId: string) => void;
+  onReorderTasks: (draggedId: string, targetId: string, position: "before" | "after") => void;
   reminder: { id: string; name: string } | null;
   onDismissReminder: () => void;
   canSwitch: boolean;
@@ -73,6 +76,7 @@ export function DynamicIsland({
   onAddLink,
   onRemoveLink,
   onToggleLinksCollapsed,
+  onReorderTasks,
   reminder,
   onDismissReminder,
   canSwitch,
@@ -90,6 +94,8 @@ export function DynamicIsland({
   const [subtaskInputForId, setSubtaskInputForId] = useState<string | null>(null);
   const [newSubtaskName, setNewSubtaskName] = useState("");
   const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const [reorderOver, setReorderOver] = useState<{ id: string; pos: "before" | "after" } | null>(null);
+  const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -402,20 +408,44 @@ export function DynamicIsland({
               const links = todo.links ?? [];
               const linksOpen = !todo.linksCollapsed;
               const isDragOver = dragOverId === todo.id;
+              const isReorderOver = reorderOver?.id === todo.id && draggingTaskId !== todo.id;
               return (
                 <li
                   key={todo.id}
-                  className="flex flex-col"
+                  className="relative flex flex-col"
                   onDragOver={(e) => {
-                    if (e.dataTransfer.types.includes("text/uri-list") || e.dataTransfer.types.includes("text/plain")) {
+                    const types = e.dataTransfer.types;
+                    if (types.includes(TASK_MIME)) {
+                      if (draggingTaskId && draggingTaskId !== todo.id) {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = "move";
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const pos: "before" | "after" =
+                          e.clientY < rect.top + rect.height / 2 ? "before" : "after";
+                        setReorderOver({ id: todo.id, pos });
+                      }
+                    } else if (types.includes("text/uri-list") || types.includes("text/plain")) {
                       e.preventDefault();
                       e.dataTransfer.dropEffect = "copy";
                       setDragOverId(todo.id);
                     }
                   }}
-                  onDragLeave={() => setDragOverId((id) => (id === todo.id ? null : id))}
+                  onDragLeave={() => {
+                    setDragOverId((id) => (id === todo.id ? null : id));
+                    setReorderOver((r) => (r?.id === todo.id ? null : r));
+                  }}
                   onDrop={(e) => {
                     e.preventDefault();
+                    const draggedId = e.dataTransfer.getData(TASK_MIME);
+                    if (draggedId && draggedId !== todo.id) {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const pos: "before" | "after" =
+                        e.clientY < rect.top + rect.height / 2 ? "before" : "after";
+                      onReorderTasks(draggedId, todo.id, pos);
+                      setReorderOver(null);
+                      setDraggingTaskId(null);
+                      return;
+                    }
                     const uri = e.dataTransfer.getData("text/uri-list");
                     const txt = e.dataTransfer.getData("text/plain");
                     const url = (uri.split("\n").find((s) => s && !s.startsWith("#")) || txt || "").trim();
@@ -423,6 +453,14 @@ export function DynamicIsland({
                     setDragOverId(null);
                   }}
                 >
+                  {isReorderOver && (
+                    <div
+                      className={[
+                        "pointer-events-none absolute left-1 right-1 h-0.5 rounded-full bg-island-accent z-10",
+                        reorderOver!.pos === "before" ? "-top-0.5" : "-bottom-0.5",
+                      ].join(" ")}
+                    />
+                  )}
                   <div
                     onMouseEnter={() => setHoveredTaskId(todo.id)}
                     onMouseLeave={() => setHoveredTaskId((id) => (id === todo.id ? null : id))}
@@ -440,7 +478,8 @@ export function DynamicIsland({
                       setReminderForId(null);
                     }}
                     className={[
-                      "flex items-center gap-2 rounded-xl px-2 py-2 transition-colors",
+                      "group/row flex items-center gap-1.5 rounded-xl pl-1 pr-2 py-2 transition-all",
+                      draggingTaskId === todo.id ? "opacity-40" : "",
                       isDragOver
                         ? "bg-island-accent/15 ring-1 ring-island-accent/50"
                         : deletingId === todo.id
@@ -454,6 +493,26 @@ export function DynamicIsland({
                                 : "",
                     ].join(" ")}
                   >
+                    <span
+                      draggable
+                      onDragStart={(e) => {
+                        e.stopPropagation();
+                        e.dataTransfer.effectAllowed = "move";
+                        e.dataTransfer.setData(TASK_MIME, todo.id);
+                        e.dataTransfer.setData("text/plain", "");
+                        setDraggingTaskId(todo.id);
+                      }}
+                      onDragEnd={() => {
+                        setDraggingTaskId(null);
+                        setReorderOver(null);
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="shrink-0 flex items-center justify-center w-3 h-6 -mr-0.5 cursor-grab active:cursor-grabbing text-island-foreground/30 hover:text-island-foreground/80 opacity-0 group-hover/row:opacity-100 transition-opacity"
+                      aria-label="拖动排序"
+                      title="拖动排序"
+                    >
+                      <GripVertical className="h-3.5 w-3.5" />
+                    </span>
                     <span className="shrink-0 flex items-center justify-center">
                       {todo.done ? (
                         <CheckCircle2 className="h-[18px] w-[18px] text-island-accent/70" />
