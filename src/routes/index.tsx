@@ -304,6 +304,7 @@ function Index() {
         onAddLink={handleAddLink}
         onRemoveLink={handleRemoveLink}
         onToggleLinksCollapsed={handleToggleLinksCollapsed}
+        onReorderTasks={handleReorderTasks}
         canSwitch={canSwitch}
         restMinutes={restMinutes}
         onChangeRestMinutes={setRestMinutes}
