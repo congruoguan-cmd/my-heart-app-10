@@ -203,6 +203,30 @@ function Index() {
     );
   };
 
+  const handleReorderTasks = (
+    draggedId: string,
+    targetId: string,
+    position: "before" | "after",
+  ) => {
+    setTodos((list) => {
+      const dragged = list.find((t) => t.id === draggedId);
+      const target = list.find((t) => t.id === targetId);
+      if (!dragged || !target || dragged.parentId || target.parentId) return list;
+      // Move dragged parent + its subtasks as a block, relative to target's block.
+      const block = (pid: string) =>
+        list.filter((t) => t.id === pid || t.parentId === pid).map((t) => t.id);
+      const draggedIds = new Set(block(draggedId));
+      const targetIds = block(targetId);
+      const remaining = list.filter((t) => !draggedIds.has(t.id));
+      const draggedItems = list.filter((t) => draggedIds.has(t.id));
+      const anchorId = position === "before" ? targetIds[0] : targetIds[targetIds.length - 1];
+      const idx = remaining.findIndex((t) => t.id === anchorId);
+      if (idx === -1) return list;
+      const insertAt = position === "before" ? idx : idx + 1;
+      return [...remaining.slice(0, insertAt), ...draggedItems, ...remaining.slice(insertAt)];
+    });
+  };
+
   const handleSetReminder = (id: string, timestamp: number | null) => {
     setTodos((list) =>
       list.map((t) => (t.id === id ? { ...t, reminderAt: timestamp } : t)),
