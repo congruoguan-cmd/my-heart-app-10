@@ -408,6 +408,7 @@ export function DynamicIsland({
               const links = todo.links ?? [];
               const linksOpen = !todo.linksCollapsed;
               const isDragOver = dragOverId === todo.id;
+              const isReorderOver = reorderOver?.id === todo.id && draggingTaskId !== todo.id;
               return (
                 <li
                   key={todo.id}
