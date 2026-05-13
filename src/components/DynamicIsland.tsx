@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, Pause, Play, Circle, CheckCircle2, Plus, Coffee, Sparkles, Minus, Bell, BellRing, X, Trash2, ChevronDown, Link as LinkIcon, ExternalLink } from "lucide-react";
+import { Check, Pause, Play, Circle, CheckCircle2, Plus, Coffee, Sparkles, Minus, Bell, BellRing, X, Trash2, ChevronDown, Link as LinkIcon, ExternalLink, GripVertical } from "lucide-react";
+
+const TASK_MIME = "application/x-task-id";
 
 export interface TaskLink {
   id: string;
