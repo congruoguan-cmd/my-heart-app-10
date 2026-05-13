@@ -478,7 +478,8 @@ export function DynamicIsland({
                       setReminderForId(null);
                     }}
                     className={[
-                      "flex items-center gap-2 rounded-xl px-2 py-2 transition-colors",
+                      "group/row flex items-center gap-1.5 rounded-xl pl-1 pr-2 py-2 transition-all",
+                      draggingTaskId === todo.id ? "opacity-40" : "",
                       isDragOver
                         ? "bg-island-accent/15 ring-1 ring-island-accent/50"
                         : deletingId === todo.id
@@ -492,6 +493,26 @@ export function DynamicIsland({
                                 : "",
                     ].join(" ")}
                   >
+                    <span
+                      draggable
+                      onDragStart={(e) => {
+                        e.stopPropagation();
+                        e.dataTransfer.effectAllowed = "move";
+                        e.dataTransfer.setData(TASK_MIME, todo.id);
+                        e.dataTransfer.setData("text/plain", "");
+                        setDraggingTaskId(todo.id);
+                      }}
+                      onDragEnd={() => {
+                        setDraggingTaskId(null);
+                        setReorderOver(null);
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="shrink-0 flex items-center justify-center w-3 h-6 -mr-0.5 cursor-grab active:cursor-grabbing text-island-foreground/30 hover:text-island-foreground/80 opacity-0 group-hover/row:opacity-100 transition-opacity"
+                      aria-label="拖动排序"
+                      title="拖动排序"
+                    >
+                      <GripVertical className="h-3.5 w-3.5" />
+                    </span>
                     <span className="shrink-0 flex items-center justify-center">
                       {todo.done ? (
                         <CheckCircle2 className="h-[18px] w-[18px] text-island-accent/70" />
