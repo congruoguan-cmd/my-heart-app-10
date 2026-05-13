@@ -48,6 +48,7 @@ interface DynamicIslandProps {
   onAddLink: (taskId: string, url: string) => void;
   onRemoveLink: (taskId: string, linkId: string) => void;
   onToggleLinksCollapsed: (taskId: string) => void;
+  onReorderTasks: (draggedId: string, targetId: string, position: "before" | "after") => void;
   reminder: { id: string; name: string } | null;
   onDismissReminder: () => void;
   canSwitch: boolean;
