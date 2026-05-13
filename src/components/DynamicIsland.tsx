@@ -76,6 +76,7 @@ export function DynamicIsland({
   onAddLink,
   onRemoveLink,
   onToggleLinksCollapsed,
+  onReorderTasks,
   reminder,
   onDismissReminder,
   canSwitch,
