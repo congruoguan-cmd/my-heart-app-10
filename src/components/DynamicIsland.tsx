@@ -94,6 +94,8 @@ export function DynamicIsland({
   const [subtaskInputForId, setSubtaskInputForId] = useState<string | null>(null);
   const [newSubtaskName, setNewSubtaskName] = useState("");
   const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const [reorderOver, setReorderOver] = useState<{ id: string; pos: "before" | "after" } | null>(null);
+  const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
